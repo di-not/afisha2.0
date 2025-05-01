@@ -1,10 +1,32 @@
+import { getAllEvents } from "@/services/events";
+import { createEvent } from "./actions";
 
-
-export default function Home() {
+export default async function Root() {
+    const events = await getAllEvents();
+    const updatePosts = () => {};
     return (
         <div className="w-full">
-            
+            <form action={createEvent} className="flex flex-col bg-0 border-2">
+                <input type="text" placeholder="title" required name="title" />
+                <textarea
+                    placeholder="descripion"
+                    required
+                    name="description"
+                />
+                <input type="hidden" name="id" />
+                <input type="file" name="image" />
+                <input type="hidden" name="createAt" />
+                <input type="hidden" name="updateAt" />
+                <button type="submit">Добавить эвент</button>
+            </form>
+            <ul>
+                {events.map((element, index) => (
+                    <li key={index}>
+                        <p> {element.title}</p>
+                        <b>{element.description}</b>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }
-
