@@ -1,5 +1,4 @@
 "use server";
-import type { Event } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import path from "path";

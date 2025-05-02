@@ -1,5 +1,6 @@
+
 import { prisma } from "@/lib/prisma";
-import { ObjectId } from "mongodb";
+// import { ObjectId } from "mongodb";
 
 export function getEventById(id: string) {
     if (!id || typeof id !== "string") {
@@ -11,7 +12,7 @@ export function getEventById(id: string) {
     }
     return prisma.event.findUnique({
         where: {
-            id: new ObjectId(id).toHexString(),
+            id: id.toString(),
         },
     });
 }
