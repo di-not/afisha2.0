@@ -1,5 +1,4 @@
 @import "tailwindcss";
-
 :root {
     --radius: 1rem;
     --background: oklch(1 0 0);
@@ -73,6 +72,7 @@
     --background: #fff;
     --foreground: #171717;
     --primary: #00a3ff;
+    --text-color: #fff;
 }
 html {
     box-sizing: border-box;
@@ -100,16 +100,57 @@ img {
 }
 
 .bgPrimary {
+    background-color: rgba(255, 255, 255, 0.3);
     box-shadow: 0px 0px 0px 0.5px rgba(255, 255, 255, 0.65),
-        inset 0px 0px 30px 10px rgba(#858585, 0.30);
+        inset 0px 0px 30px 10px rgba(133, 133, 133, 0.3);
     background-color: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(8px);
 }
-
+.bgInput {
+    color: white;
+    box-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.25),
+        inset 0px 0px 12px 2px rgba(255, 255, 255, 0.25);
+    
+    font-size: 16px;
+    font-weight: 500;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 9999px;
+    &::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    &:focus {
+        outline: 1px solid rgba(255, 255, 255, 0.3);
+        outline-offset: 0;
+    }
+}
 .bgButton {
-    background-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.1),
-        inset 0px 0px 20px 3px rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1000px;
+    color: var(--text-color);
+
+    background: linear-gradient(135deg, #12aaff 0%, #0080f7 100%);
+    box-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.2);
+    transition: all 300ms ease-in-out;
+    transition-delay: 50ms;
+
+    @media (hover: hover) {
+        &:hover {
+            transition: all 300ms ease-in-out;
+            transition-delay: 50ms;
+            box-shadow: 0px 0px 10px 4px rgba(255, 255, 255, 0.65),
+                inset 0px 0px 25px 3px rgba(255, 255, 255, 0.05);
+        }
+    }
+    @media (hover: none) {
+        &:active {
+            transition: all 300ms ease-in-out;
+            transition-delay: 50ms;
+            box-shadow: 0px 0px 10px 4px rgba(255, 255, 255, 0.65),
+                inset 0px 0px 25px 3px rgba(255, 255, 255, 0.05);
+        }
+    }
 }
 @theme inline {
     --color-background: var(--background);
@@ -130,10 +171,10 @@ body {
     background: var(--background);
     /* background: linear-gradient(180deg, var(--primary) 0%, var(--primary) 100%); */
     color: var(--foreground);
-    // background: linear-gradient(
-    //     180deg,
-    //     #96cbc1 30%,
-    //     #53ae9c 72.5%,
-    //     #237162 100%
-    // );
+    /* background: linear-gradient(
+         180deg,
+         #96cbc1 30%,
+         #53ae9c 72.5%,
+         #237162 100%
+     ); */
 }

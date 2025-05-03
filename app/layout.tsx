@@ -1,7 +1,7 @@
 
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
-import "./globals.scss";
+import "./globals.css";
 import Providers  from "@/shared/components/shared/providers";
 // import ReduxProvider from "@/shared/redux/ReduxProvider/ReduxProvider";
 

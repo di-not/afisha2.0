@@ -1,36 +1,27 @@
-'use client'
-import { useSession, signIn, signOut } from "next-auth/react";
+"use client";
+import { useSession} from "next-auth/react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import ProfileLink from "@/public/images/profile_icon.svg";
+import LogInBlock from "./logInBlock";
+
+
 
 interface ProfileBlockProps {}
 const ProfileBlock: React.FC<ProfileBlockProps> = () => {
-     const { data: session } = useSession();
+    const { data: session } = useSession();
 
-    const form = useForm<{ email: string; password: string }>({
-        defaultValues: {
-            email: "",
-            password: "",
-        },
-    });
+    
 
-    const onSubmit = async (data: { email: string; password: string }) => {
-        try {
-            const res = await signIn("credentials", {
-                ...data,
-                redirect: false,
-            });
-
-            if (!res?.ok) {
-                return console.error("не удалось войти");
-            }
-        } catch (error) {
-            console.error("не удалось войти");
-        }
-    };
     return (
         <div>
-            {!session ? (
+            {session ? (
+                <Link className="bgButton h-[50px] w-[50px]" href={"/profile"}>
+                    <ProfileLink width={30} height={30} viewBox="0 0 24 24" />
+                </Link>
+            ) : (
+                <LogInBlock/>
+            )}
+            {/* {!session ? (
                     <>
                         <button
                             className="text-black"
@@ -72,8 +63,8 @@ const ProfileBlock: React.FC<ProfileBlockProps> = () => {
                     <Link className="text-black" href={"/profile"}>
                         Профиль
                     </Link>
-                )}
+                )} */}
         </div>
     );
 };
-export default  ProfileBlock ;
+export default ProfileBlock;
