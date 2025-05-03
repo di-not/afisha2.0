@@ -1,5 +1,6 @@
 "use client";
 import { useSession, signIn, signOut } from "next-auth/react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 
 interface headerProps {}
@@ -66,9 +67,9 @@ const Header: React.FC<headerProps> = (props) => {
                     </form>
                 </>
             ) : (
-                <button className="text-black" onClick={() => signOut()}>
-                    Выйти
-                </button>
+                <Link className="text-black" href={'/profile'}>
+                   Профиль
+                </Link>
             )}
         </div>
     );

@@ -1,18 +1,17 @@
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 
 import YandexProvider from "next-auth/providers/yandex";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare, hashSync } from "bcrypt";
 import { UserRole } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
     providers: [
         YandexProvider({
             clientId: process.env.YANDEX_CLIENT_ID || "",
             clientSecret: process.env.YANDEX_CLIENT_SECRET || "",
             profile(profile) {
-                console.log(profile)
-                
                 return {
                     id: String(profile.id),
                     email: profile.default_email,
@@ -40,9 +39,8 @@ export const authOptions = {
 
                 const values = {
                     email: credentials.email,
-                    password: credentials.password,
                 };
-                const findUser = await prisma?.user.findFirst({
+                const findUser = await prisma.user.findFirst({
                     where: values,
                 });
                 if (!findUser) {
@@ -55,6 +53,7 @@ export const authOptions = {
                 // );
                 const isPasswordValid =
                     credentials.password === findUser.password;
+
                 if (!isPasswordValid) {
                     return null;
                 }
@@ -72,7 +71,7 @@ export const authOptions = {
         strategy: "jwt",
     },
     callbacks: {
-        async signIn({ user, account }: any) {
+        async signIn({ user, account }) {
             try {
                 if (account?.provider === "credentials") {
                     return true;
@@ -80,7 +79,7 @@ export const authOptions = {
                 if (!user.email) {
                     return false;
                 }
-                const findUser = await prisma?.user.findFirst({
+                const findUser = await prisma.user.findFirst({
                     where: {
                         OR: [
                             {
@@ -92,12 +91,12 @@ export const authOptions = {
                     },
                 });
                 if (findUser) {
-                    await prisma?.user.update({
+                    await prisma.user.update({
                         where: {
                             id: findUser.id,
                         },
                         data: {
-                            provider: account.provider,
+                            provider: account?.provider,
                             providerId: account?.providerAccountId,
                         },
                     });
@@ -106,7 +105,7 @@ export const authOptions = {
 
                 await prisma?.user.create({
                     data: {
-                        fullName: user.fullName,
+                        fullName: user.name || "User #" + user.id,
                         email: user.email,
                         role: "USER" as UserRole,
                         //поменять (не безопасно)
@@ -115,12 +114,17 @@ export const authOptions = {
                         providerId: account?.providerAccountId,
                     },
                 });
+                return true;
             } catch (error) {
                 console.error("Error signIn", error);
+                return false;
             }
         },
-        async jwt({ token }: any) {
-            const findUser = await prisma?.user.findFirst({
+        async jwt({ token }) {
+            if (!token.email) {
+                return token;
+            }
+            const findUser = await prisma.user.findFirst({
                 where: {
                     email: token.email,
                 },
@@ -129,14 +133,15 @@ export const authOptions = {
                 token.id = String(findUser.id);
                 token.email = findUser.email;
                 token.fullName = findUser.fullName;
-                token.role = "USER" as UserRole;
+                token.role = findUser.role;
             }
 
             return token;
         },
-        session({ session, token }: any) {
+        session({ session, token }) {
             if (session?.user) {
                 session.user.id = token.id;
+                session.user.role = token.role;
             }
             return session;
         },
