@@ -1,7 +1,7 @@
 
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
-import "./globals.css";
+import "./globals.scss";
 import Providers  from "@/shared/components/shared/providers";
 // import ReduxProvider from "@/shared/redux/ReduxProvider/ReduxProvider";
 
@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${montserrat.variable} antialiased`}>
+            <body className={`${montserrat.variable} antialiased pt-[90px]`}>
                 <Providers>
                     {/* <ReduxProvider> */}
                     {children}
