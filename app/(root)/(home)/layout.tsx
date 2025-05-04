@@ -10,7 +10,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <div className="min-h-screen sm:font-[family-name:var(--font-base)]">
+        <div className="min-h-screen sm:font-[family-name:var(--font-base)] pb-20">
             <Header />
             <main className="flex flex-col w-full ">
                 {children}

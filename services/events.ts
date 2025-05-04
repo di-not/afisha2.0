@@ -1,4 +1,3 @@
-
 import { prisma } from "@/lib/prisma";
 // import { ObjectId } from "mongodb";
 
@@ -14,8 +13,15 @@ export function getEventById(id: string) {
         where: {
             id: id.toString(),
         },
+        include: {
+            place: true,
+        },
     });
 }
 export function getAllEvents() {
-    return prisma.event.findMany();
+    return prisma.event.findMany({
+        include: {
+            place: true,
+        },
+    });
 }

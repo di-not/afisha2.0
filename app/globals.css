@@ -94,17 +94,16 @@ img {
     user-select: none;
 }
 .container {
-    max-width: 1440px;
+    max-width: 1240px;
     padding: 0 70px;
     margin: 0 auto;
 }
 
 .bgPrimary {
-    background-color: rgba(255, 255, 255, 0.3);
     box-shadow: 0px 0px 0px 0.5px rgba(255, 255, 255, 0.65),
-        inset 0px 0px 30px 10px rgba(133, 133, 133, 0.3);
+        inset 0px 0px 30px 10px rgba(255, 255, 255, 0.1);
     background-color: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(30px);
 }
 .bgInput {
     color: white;
@@ -161,7 +160,7 @@ img {
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --background: #fff;
+        --background: #ffffff;
         --foreground: #171717;
         --primary: #00a3ff;
     }
@@ -171,10 +170,5 @@ body {
     background: var(--background);
     /* background: linear-gradient(180deg, var(--primary) 0%, var(--primary) 100%); */
     color: var(--foreground);
-    /* background: linear-gradient(
-         180deg,
-         #96cbc1 30%,
-         #53ae9c 72.5%,
-         #237162 100%
-     ); */
+    
 }

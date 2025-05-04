@@ -55,12 +55,12 @@ const LogInBlock: React.FC = () => {
                                 <input
                                     {...form.register("email")}
                                     className="bgInput p-2.5 pl-5 pr-14 w-full"
-                                    placeholder="почта"
+                                    placeholder="Почта"
                                 />
                                 <input
                                     {...form.register("password")}
                                     className="bgInput p-2.5 pl-5 pr-14 w-full"
-                                    placeholder="пароль"
+                                    placeholder="Пароль"
                                 />
                                 <button
                                     type="submit"
