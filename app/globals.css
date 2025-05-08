@@ -162,7 +162,7 @@ img {
     :root {
         --background: #ffffff;
         --foreground: #171717;
-        --primary: #00a3ff;
+        --primary: rgb(0, 163, 255);
     }
 }
 

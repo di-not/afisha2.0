@@ -10,8 +10,10 @@ const Card: React.FC<cardProps> = ({ element }) => {
         <li
             
             className="group gap-5 p-3 transition delay-20 duration-300 ease-in-out 
-            cursor-pointer rounded-3xl shadow-[0px_3px_4px_0px_rgba(0,0,0,0.1)] 
-            hover:shadow-[0px_5px_3px_0.5px_rgba(0,0,0,0.2)]"
+            cursor-pointer rounded-3xl shadow-[0px_3px_4px_0px_rgba(0,0,0,0.1)] inset-shadow-[0px_3px_4px_0px_rgba(0,0,0,0.0)]              
+            hover:inset-shadow-[0px_0px_20px_1px_rgba(0,163,255,0.3)]
+            hover:shadow-[0px_0px_40px_15px_rgba(0,0,0,0.1)] 
+            "
         >
             <Link href={`/event/${element.id}`}>
                 <div className="overflow-hidden rounded-xl  max-h-[252px] max-w-[252px]">
@@ -20,9 +22,8 @@ const Card: React.FC<cardProps> = ({ element }) => {
                         src={element.imageUrl}
                         width={244}
                         height={244}
-                        className="group-hover:scale-103
-                        max-h-[244px] max-w-[244px] object-cover rounded-xl 
-                        aspect-square transition delay-0 duration-300 w-full h-full"
+                        className="max-h-[244px] max-w-[244px] object-cover rounded-xl 
+                        aspect-square transition delay-20 duration-300 w-full h-full"
                     />
                 </div>
                 <div className="p-0.5 pt-2">
