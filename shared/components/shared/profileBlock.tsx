@@ -3,14 +3,17 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import ProfileLink from "@/public/images/profile_icon.svg";
 import LogInBlock from "./logInBlock";
+import { prisma } from "@/lib/prisma";
+import { useRouter } from "next/navigation";
 
 interface ProfileBlockProps {}
-const ProfileBlock: React.FC<ProfileBlockProps> = () => {
+const ProfileBlock: React.FC<ProfileBlockProps> =  () => {
     const { data: session } = useSession();
-
+    console.log(session?.user)
+    
     return (
         <div>
-            {session ? (
+            {session && session?.user ? (
                 <Link className="bgButton h-[50px] w-[50px]" href={"/profile"}>
                     <ProfileLink width={30} height={30} viewBox="0 0 24 24" />
                 </Link>

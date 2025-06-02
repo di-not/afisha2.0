@@ -47,12 +47,12 @@ export const authOptions: AuthOptions = {
                     return null;
                 }
 
-                // const isPasswordValid = await compare(
-                //     credentials.password,
-                //     findUser.password
-                // );
-                const isPasswordValid =
-                    credentials.password === findUser.password;
+                const isPasswordValid = await compare(
+                    credentials.password,
+                    findUser.password
+                );
+                // const isPasswordValid =
+                //     credentials.password === findUser.password;
 
                 if (!isPasswordValid) {
                     return null;
@@ -124,26 +124,50 @@ export const authOptions: AuthOptions = {
             if (!token.email) {
                 return token;
             }
-            const findUser = await prisma.user.findFirst({
-                where: {
-                    email: token.email,
-                },
-            });
-            if (findUser) {
-                token.id = String(findUser.id);
-                token.email = findUser.email;
-                token.fullName = findUser.fullName;
-                token.role = findUser.role;
+            try {
+                const findUser = await prisma.user.findFirst({
+                    where: {
+                        email: token.email,
+                    },
+                });
+                if (!findUser) {
+                    return {
+                        ...token,
+                        invalid: true, // Добавляем флаг невалидности
+                    };
+                }
+                return {
+                    ...token,
+                    id: String(findUser.id),
+                    email: findUser.email,
+                    fullName: findUser.fullName,
+                    role: findUser.role,
+                };
+            } catch (error) {
+                return {
+                    ...token,
+                    error: "DB_ERROR",
+                };
             }
-
-            return token;
         },
         session({ session, token }) {
-            if (session?.user) {
-                session.user.id = token.id;
-                session.user.role = token.role;
+            if (token.invalid || token.error) {
+                const { user, ...rest } = session;
+                return rest; // Возвращаем сессию без user
             }
-            return session;
+
+            return {
+                ...session,
+                user: {
+                    ...session.user,
+                    id: token.id as string,
+                    email: token.email ?? session.user?.email ?? null,
+                    name:
+                        (token.fullName as string | undefined) ??
+                        session.user?.fullName,
+                    role: token.role as UserRole,
+                },
+            };
         },
     },
 };

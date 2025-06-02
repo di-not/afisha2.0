@@ -5,16 +5,20 @@ import { redirect } from "next/navigation";
 import { createEvent } from "../actions";
 export default async function ProfilePage() {
     const session = await getUserSession();
+    console.log(session);
+
     if (!session) {
         return redirect("/non-auth");
     }
     const user = await prisma.user.findFirst({ where: { id: session?.id } });
-
+    if (!user) {
+        return redirect("/non-auth");
+    }
     return (
         <div>
             <h1>Профиль</h1>
             <p>{user?.fullName}</p>
-            
+
             <form action={createEvent} className="flex flex-col bg-0 border-2">
                 <input type="text" placeholder="title" required name="title" />
                 <textarea

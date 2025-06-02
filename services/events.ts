@@ -11,7 +11,7 @@ export function getEventById(id: string) {
     }
     return prisma.event.findUnique({
         where: {
-            id: id.toString(),
+            id: id,
         },
         include: {
             place: true,
