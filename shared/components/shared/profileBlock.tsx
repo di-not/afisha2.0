@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 interface ProfileBlockProps {}
 const ProfileBlock: React.FC<ProfileBlockProps> =  () => {
     const { data: session } = useSession();
-    console.log(session?.user)
     
     return (
         <div>

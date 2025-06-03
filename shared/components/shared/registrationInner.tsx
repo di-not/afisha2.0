@@ -5,6 +5,8 @@ import { signIn } from "next-auth/react";
 import Yandex from "@/public/images/yandex.svg";
 import { registerUser } from "@/app/(root)/actions";
 import { redirect, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { PasswordInput } from "../ui/passwordInput";
 
 const schema = z.object({
     email: z.string().email(),
@@ -17,10 +19,11 @@ type FormData = z.infer<typeof schema>;
 const RegistrationInner: React.FC<{
     setOpenRegistraion: (open: boolean) => void;
 }> = ({ setOpenRegistraion }) => {
+    const router = useRouter();
+
     const form = useForm<FormData>({
         resolver: zodResolver(schema),
     });
-    const router = useRouter();
 
     const onSubmit = async (data: {
         email: string;
@@ -68,10 +71,10 @@ const RegistrationInner: React.FC<{
                         className="bgInput p-2.5 pl-5 pr-14 w-full"
                         placeholder="Почта"
                     />
-                    <input
-                        {...form.register("password")}
-                        className="bgInput p-2.5 pl-5 pr-14 w-full"
-                        placeholder="Пароль"
+                    <PasswordInput
+                        formStates={form}
+                        name={"password"}
+                        placeholder={"Пароль"}
                     />
                     <input
                         {...form.register("fullName")}

@@ -12,6 +12,7 @@ import Yandex from "@/public/images/yandex.svg";
 import { useState } from "react";
 import { RegistrationInner } from "./registrationInner";
 import { redirect, useRouter } from "next/navigation";
+import { PasswordInput } from "../ui/passwordInput";
 
 const schema = z.object({
     email: z.string().email(),
@@ -69,10 +70,11 @@ const LogInBlock: React.FC = () => {
                                         className="bgInput p-2.5 pl-5 pr-14 w-full"
                                         placeholder="Почта"
                                     />
-                                    <input
-                                        {...form.register("password")}
-                                        className="bgInput p-2.5 pl-5 pr-14 w-full"
-                                        placeholder="Пароль"
+
+                                    <PasswordInput
+                                        formStates={form}
+                                        name={"password"}
+                                        placeholder={"Пароль"}
                                     />
                                     <button
                                         type="submit"
