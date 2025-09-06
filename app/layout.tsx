@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Providers  from "@/shared/components/shared/providers";
-// import ReduxProvider from "@/shared/redux/ReduxProvider/ReduxProvider";
 
 const montserrat = Montserrat({
     subsets: ["cyrillic"],
@@ -24,10 +23,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${montserrat.variable} antialiased `}>
                 <Providers>
-                    {/* <ReduxProvider> */}
                     {children}
-
-                    {/* </ReduxProvider> */}
                 </Providers>
             </body>
         </html>

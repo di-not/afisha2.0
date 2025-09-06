@@ -13,6 +13,7 @@ const PasswordInput: React.FC<passwordInputProps> = ({
     placeholder,
 }) => {
     const [openSymbols, setOpenSymbols] = useState(false);
+    const value = formStates.watch(name);
     return (
         <div className="relative w-full">
             <input
@@ -22,20 +23,21 @@ const PasswordInput: React.FC<passwordInputProps> = ({
                 style={{ caretColor: "#fff" }}
                 placeholder={placeholder}
             />
-
-            <button
-                className="absolute right-5 bottom-0 top-0"
-                type="button"
-                onClick={() => {
-                    setOpenSymbols(!openSymbols);
-                }}
-            >
-                {!openSymbols ? (
-                    <EyeOff color="rgba(255,255,255,0.3)" />
-                ) : (
-                    <Eye color="rgba(255,255,255,0.3)" />
-                )}
-            </button>
+            {value?.length > 0 && (
+                <button
+                    className="absolute right-5 bottom-0 top-0"
+                    type="button"
+                    onClick={() => {
+                        setOpenSymbols(!openSymbols);
+                    }}
+                >
+                    {!openSymbols ? (
+                        <EyeOff color="rgba(255,255,255,0.3)" />
+                    ) : (
+                        <Eye color="rgba(255,255,255,0.3)" />
+                    )}
+                </button>
+            )}
         </div>
     );
 };
