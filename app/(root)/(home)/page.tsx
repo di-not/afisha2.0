@@ -11,7 +11,7 @@ export default function Root() {
                 >
                     Все мероприятия
                 </h2>
-                <EventPaginateList />
+                {/* <EventPaginateList /> */}
                 <br />
                 <br />
                 <br />
