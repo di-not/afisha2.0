@@ -135,7 +135,7 @@ model Event {
   title            String
   description      String
   shortDescription String?
-  imageUrl         String?
+  imageUrl         String
   startDate        DateTime?
   endDate          DateTime?
   minPrice         Int?

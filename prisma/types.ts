@@ -12,7 +12,7 @@ export interface Event {
   title: string;
   description: string;
   shortDescription?: string | null;
-  imageUrl?: string | null;
+  imageUrl: string;
   startDate?: Date | null;
   endDate?: Date | null;
   organizerList?: string | null;
@@ -38,7 +38,7 @@ export interface Event {
     color?: string | null;
     url?: string | null;
   }>;
-  timetable?: Array<{
+  timetables?: Array<{
     id: string;
     name?: string | null;
     dateName?: string | null;

@@ -1,17 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { Event } from "@/prisma/types";
 import { IconHome } from "@/shared/icons/home";
+import { IconOrganizers } from "@/shared/icons/organizers";
+import TabNavigation from "@/shared/components/ui/tab-navigation";
+import { IconDescription } from "@/shared/icons/description";
+import { IconSubevents } from "@/shared/icons/subevents";
+import { IconTimestamps } from "@/shared/icons/timestamps";
+import { IconDocuments } from "@/shared/icons/documents";
+import { IconSponsors } from "@/shared/icons/sponsors";
+import { IconLocation } from "@/shared/icons/location";
+import DescriptionBlock from "@/widgets/event/ui/description-block";
+import Timetable from "@/widgets/event/ui/timetables-block";
+import { IconBookmark } from "@/shared/icons/bookmark";
+import { IconFavorite } from "@/shared/icons/favorite";
 
-type ActiveTab = "description" | "timetable" | "organizers" | "documents";
+export type ActiveTab = "description" | "timetable" | "organizers" | "documents";
+
+const tabs = [
+  { id: "organizers" as ActiveTab, label: "Организаторы", icon: <IconOrganizers className="size-[24px]" /> },
+  { id: "description" as ActiveTab, label: "Описание", icon: <IconDescription className="size-[24px]" /> },
+  { id: "subevents" as ActiveTab, label: "Подсобытия", icon: <IconSubevents className="size-[24px]" /> },
+  { id: "timetable" as ActiveTab, label: "Расписание", icon: <IconTimestamps className="size-[24px]" /> },
+  { id: "documents" as ActiveTab, label: "Документы", icon: <IconDocuments className="size-[24px]" /> },
+  { id: "sponsors" as ActiveTab, label: "Спонсоры", icon: <IconSponsors className="size-[24px]" /> },
+];
 
 export default function EventPage({ event }: { event: Event }) {
-  const params = useParams();
-  const [activeTab, setActiveTab] = useState<ActiveTab>("description");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("organizers");
   const [imageSourceVisible, setImageSourceVisible] = useState(false);
 
   const formatDate = (date: Date) => {
@@ -56,45 +75,51 @@ export default function EventPage({ event }: { event: Event }) {
       </div>
     );
   }
-  console.log(event)
-  
+
   return (
     <div
-      className="min-h-screen pt-25 "
+      className="min-h-screen pt-25"
       style={{
         background: `linear-gradient(#00a3ff 300px, #ffffff 300px)`,
       }}
     >
       <div className="container mx-auto px-4 py-8">
-        {/* Хлебные крошки */}
-        <nav className="mb-6">
-          <ol className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link className="transition duration-300 ease-in-out bgPrimary rounded-full p-1 px-4 text-white font-medium flex gap-2 items-center hover:scale-110" href="/">
-              <IconHome className="text-white" />
-              Главная
-            </Link>
-            <li className="bgPrimary rounded-full p-1 px-4 text-white font-medium ">{event.title}</li>
-          </ol>
-        </nav>
+        <div className="flex justify-between">
+          {/* Хлебные крошки */}
+          <nav className="mb-6">
+            <ol className="flex items-center space-x-2 text-sm text-gray-600">
+              <Link
+                className="transition duration-300 ease-in-out bgPrimary rounded-full p-1 px-4 text-white font-medium flex gap-2 items-center hover:scale-110"
+                href="/"
+              >
+                <IconHome className="text-white" />
+                Главная
+              </Link>
+              <li className="bgPrimary rounded-full p-1 px-4 text-white font-medium ">{event.title}</li>
+            </ol>
+          </nav>
+          <div className="flex gap-2">
+            <button className="bgPrimary text-white h-fit p-2 rounded-full flex justify-center items-center">
+              <IconBookmark className=" size-[18px]" />
+            </button>
+            <button className="bgPrimary text-white h-fit p-2 rounded-full flex justify-center items-center">
+              <IconFavorite className=" size-[18px]" />
+            </button>
+          </div>
+        </div>
 
-        <div className="flex gap-6 ">
+        <div className="flex gap-6 max-md:flex-col! ">
           {/* Левая колонка */}
-          <div className=" space-y-6 flex-5 min-w-[320px]">
+          <div className="space-y-6 w-100 max-md:w-full ">
             {/* Изображение */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="relative h-full w-full">
-                {event.imageUrl ? (
-                  <img
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="object-cover"
-                    onClick={() => setImageSourceVisible(!imageSourceVisible)}
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                    <span className="text-blue-500 text-6xl">💃</span>
-                  </div>
-                )}
+                <img
+                  src={event.imageUrl}
+                  alt={event.title}
+                  className="object-cover"
+                  onClick={() => setImageSourceVisible(!imageSourceVisible)}
+                />
               </div>
               {imageSourceVisible && (
                 <div className="p-4 text-xs text-gray-500">
@@ -122,12 +147,12 @@ export default function EventPage({ event }: { event: Event }) {
           </div>
 
           {/* Правая колонка */}
-          <div className="flex-7">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{event.title}</h1>
+          <div className="flex-1 h-fit">
+            <div className="bg-white rounded-xl shadow-2xl p-6">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.title}</h1>
 
               {event.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {event.tags.map((tag) => (
                     <span
                       key={tag.id}
@@ -141,20 +166,24 @@ export default function EventPage({ event }: { event: Event }) {
               )}
 
               {/* Место и дата */}
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-gray-600">📍</span>
+              <div className="flex items-center my-1">
                 {event.place ? (
                   event.place.url ? (
-                    <a
-                      href={event.place.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      {event.place.name}
-                    </a>
+                    <>
+                      <IconLocation className="text-[var(--primary)] size-[24px]" />
+                      <a
+                        href={event.place.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-bold transition duration-300 ease-in-out"
+                      >
+                        {event.place.name}
+                      </a>
+                    </>
                   ) : (
-                    <span>{event.place.name}</span>
+                    <span>
+                      <IconLocation className="text-[var(--primary)]" /> {event.place.name}
+                    </span>
                   )
                 ) : (
                   <span>{event.isOnline ? "Онлайн" : "Место не указано"}</span>
@@ -162,83 +191,54 @@ export default function EventPage({ event }: { event: Event }) {
               </div>
 
               {event.startDate && (
-                <div className="text-gray-600 mb-4">
+                <div className="text-gray-600 mb-2">
                   <p>С: {formatDateTime(event.startDate)}</p>
                   {event.endDate && <p>По: {formatDateTime(event.endDate)}</p>}
                 </div>
               )}
 
-              {event.shortDescription && <p className="text-gray-700 text-lg mb-6">{event.shortDescription}</p>}
+              {event.shortDescription && <p className="font-normal text-lg mb-2">{event.shortDescription}</p>}
 
               {/* Навигация по табам */}
-              <nav className="border-b border-gray-200 mb-6">
-                <div className="flex space-x-8">
-                  {[
-                    { id: "description" as ActiveTab, label: "Описание" },
-                    { id: "timetable" as ActiveTab, label: "Расписание" },
-                    { id: "organizers" as ActiveTab, label: "Организаторы" },
-                    { id: "documents" as ActiveTab, label: "Документы" },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`py-2 px-1 font-medium text-sm ${
-                        activeTab === tab.id
-                          ? "text-blue-600 border-b-2 border-blue-600"
-                          : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </nav>
+              <TabNavigation tabs={tabs} setActiveTab={setActiveTab} activeTab={activeTab} />
 
               {/* Контент табов */}
-              <div className="min-h-[300px]">
-                {activeTab === "description" && event.description && (
-                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: event.description }} />
+              <div className="mt-2">
+                {activeTab === "description" && (
+                  <>
+                    <h3 className="font-bold text-black text-2xl mb-2">Описание</h3>
+                    {event.description ? (
+                      <DescriptionBlock description={event.description} activeTab={activeTab} />
+                    ) : (
+                      <>Описание не указано...</>
+                    )}
+                  </>
                 )}
-
-                {event.timetable && activeTab === "timetable" && event.timetable.length > 0 && (
-                  <div className="space-y-6">
-                    {event.timetable.map((day) => (
-                      <div key={day.id} className="border-b border-gray-200 pb-6 last:border-b-0">
-                        <h3 className="font-bold text-xl mb-4">
-                          {day.name || formatDate(day.date!)}
-                          {day.dateName && ` (${day.dateName})`}
-                        </h3>
-
-                        <div className="space-y-4">
-                          {day.timestamps.map((timestamp) => (
-                            <div key={timestamp.id} className="flex gap-4">
-                              <div className="w-24 flex-shrink-0 text-gray-600 font-medium">
-                                {timestamp.time || `${timestamp.startTime} - ${timestamp.endTime}`}
-                              </div>
-                              <div>
-                                <h4 className="font-semibold">{timestamp.name}</h4>
-                                {timestamp.shortDescription && (
-                                  <p className="text-gray-600 text-sm mt-1">{timestamp.shortDescription}</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {activeTab === "organizers" && event.organizer && (
+                {activeTab === "organizers" && (
                   <div>
-                    <h3 className="font-bold text-xl mb-4">Организатор</h3>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="font-semibold">{event.organizer.organizationName || event.organizer.fullName}</p>
-                      {event.organizer.organizationCity && (
-                        <p className="text-gray-600">{event.organizer.organizationCity}</p>
-                      )}
-                    </div>
+                    <h3 className="font-bold text-black text-2xl mb-2">Организатор</h3>
+                    {event.organizer ? (
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <p className="font-semibold">{event.organizer.organizationName || event.organizer.fullName}</p>
+                        {event.organizer.organizationCity && (
+                          <p className="text-gray-600">{event.organizer.organizationCity}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <>Организаторы не указаны...</>
+                    )}
                   </div>
+                )}
+
+                {activeTab === "timetable" && (
+                  <>
+                    <h3 className="font-bold text-black text-2xl mb-2">Расписание</h3>
+                    {event.timetables && event.timetables.length > 0 ? (
+                      <Timetable days={event.timetables} />
+                    ) : (
+                      <>Расписание не указано...</>
+                    )}
+                  </>
                 )}
 
                 {event.documents && activeTab === "documents" && event.documents.length > 0 && (
