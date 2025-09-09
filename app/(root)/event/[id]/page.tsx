@@ -1,39 +1,33 @@
-
-import { getAllEvents, getEventById } from "@/services/events";
+import { fetchSingleEvent } from "@/entities/event/lib/api";
+import EventPage from "@/pages/event-page";
+import Header from "@/shared/components/shared/header";
 import { Metadata } from "next";
 
-type Props = {
-    params: {
-        id: string;
-    };
-};
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const event = await fetchSingleEvent(id);
 
-export async function generateStaticParams() {
-    const events: any[] = await getAllEvents();
-    return events.map((event) => ({
-        slug: event.id.toString(),
-    }));
-}
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { id } = await params;
-    const event = await getEventById(id);
-    return {
-        title: event?.title ?? "",
-    };
+  return {
+    title: event.title,
+    description: event.description,
+    // openGraph: {
+    //   title: quiz.name,
+    //   description: quiz.description || "",
+    //   images: [quiz.image],
+    // },
+  };
 }
 
-export default async function Event({ params }: Props) {
-    const { id } = await params;
-    const event = await getEventById(id);
+export default async function QuizPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const event = await fetchSingleEvent(id);
 
-    if (!event) {
-        return <h1>Event Not Found</h1>;
-    }
-    return (
-        <div>
-            <img src={event.imageUrl} alt="" />
-            <h1>{event.title}</h1>
-            <p>{event.description}</p>
-        </div>
-    );
+  return (
+    <>
+      <Header />
+      <main className="font-[family-name:var(--font-base)]">
+        <EventPage event={event} />
+      </main>
+    </>
+  );
 }

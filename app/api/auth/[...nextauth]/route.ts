@@ -4,7 +4,7 @@ import YandexProvider from "next-auth/providers/yandex";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare, hashSync } from "bcrypt";
 import { UserRole } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/shared/lib/prisma";
 
 // Интерфейс для профиля Яндекс
 interface YandexProfile {

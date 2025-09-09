@@ -21,9 +21,9 @@ model User {
   role     UserRole @default(USER)
 
   // Для танцоров
-  mainDanceStyleId    String? @db.ObjectId
-  danceSchoolId       String? @db.ObjectId
-  
+  mainDanceStyleId String? @db.ObjectId
+  danceSchoolId    String? @db.ObjectId
+
   // Для организаторов
   isOrganizer         Boolean @default(false)
   organizationName    String?
@@ -34,16 +34,17 @@ model User {
   providerId String?
 
   // Связи
-  mainDanceStyle    DanceStyle?    @relation(fields: [mainDanceStyleId], references: [id], name: "MainDanceStyle")
-  danceSchool       DanceSchool?   @relation(fields: [danceSchoolId], references: [id])
-  organizationStyle DanceStyle?    @relation(fields: [organizationStyleId], references: [id], name: "OrganizationStyle")
+  mainDanceStyle    DanceStyle?  @relation(fields: [mainDanceStyleId], references: [id], name: "MainDanceStyle")
+  danceSchool       DanceSchool? @relation(fields: [danceSchoolId], references: [id])
+  organizationStyle DanceStyle?  @relation(fields: [organizationStyleId], references: [id], name: "OrganizationStyle")
 
   // Многие-ко-многим отношения через промежуточные модели
   additionalStyles UserDanceStyle[]
-  eventsCreated    Event[]          @relation("EventOrganizer")
+  eventsCreated    Event[]               @relation("EventOrganizer")
   eventsAttended   UserEvent[]
   favoriteEvents   UserFavoriteEvent[]
   bookmarkedEvents UserBookmarkedEvent[]
+  createdEvents    Event[]               @relation("EventCreator")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -51,11 +52,11 @@ model User {
 
 // Промежуточная модель для дополнительных стилей танца
 model UserDanceStyle {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  danceStyleId String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  danceStyle  DanceStyle @relation(fields: [danceStyleId], references: [id])
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String     @db.ObjectId
+  danceStyleId String     @db.ObjectId
+  user         User       @relation(fields: [userId], references: [id])
+  danceStyle   DanceStyle @relation(fields: [danceStyleId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -64,12 +65,12 @@ model UserDanceStyle {
 
 // Промежуточная модель для мероприятий, которые пользователь посещает
 model UserEvent {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  eventId     String   @db.ObjectId
-  status      EventAttendanceStatus @default(GOING) // GOING, INTERESTED, WILL_GO
-  user        User     @relation(fields: [userId], references: [id])
-  event       Event    @relation(fields: [eventId], references: [id])
+  id      String                @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String                @db.ObjectId
+  eventId String                @db.ObjectId
+  status  EventAttendanceStatus @default(GOING) // GOING, INTERESTED, WILL_GO
+  user    User                  @relation(fields: [userId], references: [id])
+  event   Event                 @relation(fields: [eventId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -78,11 +79,11 @@ model UserEvent {
 
 // Промежуточная модель для избранных мероприятий
 model UserFavoriteEvent {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  eventId     String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  event       Event    @relation(fields: [eventId], references: [id])
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String @db.ObjectId
+  eventId String @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+  event   Event  @relation(fields: [eventId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -91,11 +92,11 @@ model UserFavoriteEvent {
 
 // Промежуточная модель для мероприятий в закладках
 model UserBookmarkedEvent {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  eventId     String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  event       Event    @relation(fields: [eventId], references: [id])
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String @db.ObjectId
+  eventId String @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+  event   Event  @relation(fields: [eventId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -103,65 +104,143 @@ model UserBookmarkedEvent {
 }
 
 model DanceStyle {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
   description String?
-  
-  usersMain User[] @relation("MainDanceStyle")
-  usersOrganization User[] @relation("OrganizationStyle")
-  usersAdditional UserDanceStyle[]
-  schools DanceSchool[]
-  events Event[]
-  
+
+  usersMain         User[]           @relation("MainDanceStyle")
+  usersOrganization User[]           @relation("OrganizationStyle")
+  usersAdditional   UserDanceStyle[]
+  schools           DanceSchool[]
+  events            Event[]
+
   createdAt DateTime @default(now())
 }
 
 model DanceSchool {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  city String
-  styleId String @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  city        String
+  styleId     String  @db.ObjectId
   description String?
-  
+
   style DanceStyle @relation(fields: [styleId], references: [id])
   users User[]
-  
+
   createdAt DateTime @default(now())
 }
 
 model Event {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id               String    @id @default(cuid()) @map("_id")
+  title            String
+  description      String
+  shortDescription String?
+  imageUrl         String?
+  startDate        DateTime?
+  endDate          DateTime?
+  minPrice         Int?
+  maxPrice         Int?
+  isOnline         Boolean   @default(false)
+  isFree           Boolean   @default(false)
+  isArchived       Boolean   @default(false)
+  isConfirmed      Boolean   @default(false)
+  organizerList    String?
 
-  title         String
-  description   String?
-  imageUrl      String
-  startDateTime String
-  endDateTime   String
-
-  place   Place?  @relation(fields: [placeId], references: [id])
-  placeId String? @db.ObjectId
-
-  organizer   User?   @relation(fields: [organizerId], references: [id], name: "EventOrganizer")
+  // Связи
+  placeId     String?
+  place       Place?  @relation(fields: [placeId], references: [id])
   organizerId String? @db.ObjectId
+  organizer   User?   @relation(fields: [organizerId], references: [id], name: "EventOrganizer")
 
-  danceStyleId String? @db.ObjectId
-  danceStyle DanceStyle? @relation(fields: [danceStyleId], references: [id])
+  creatorId    String?     @db.ObjectId
+  creator      User?       @relation(fields: [creatorId], references: [id], name: "EventCreator")
+  danceStyleId String?     @db.ObjectId
+  danceStyle   DanceStyle? @relation(fields: [danceStyleId], references: [id])
 
-  // Многие-ко-многим через промежуточные модели
-  attendees UserEvent[]
-  favorites UserFavoriteEvent[]
-  bookmarks UserBookmarkedEvent[]
+  // Промежуточные отношения для many-to-many
+  tags         Tag[]
+  timetables   Timetable[]
+  socials      Socials?
+  documents    Document[]
+  attendees    UserEvent[]
+  favoritedBy  UserFavoriteEvent[]
+  bookmarkedBy UserBookmarkedEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+
+model Tag {
+  id    String  @id @default(cuid()) @map("_id")
+  name  String
+  color String? @default("#E4E4E4")
+  url   String?
+
+  createdAt DateTime @default(now())
+  Event     Event?   @relation(fields: [eventId], references: [id])
+  eventId   String?
+}
+
 model Place {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id   String  @id @default(cuid()) @map("_id")
   name String
-  address String
-  url  String
+  url  String?
+
   events Event[]
+}
+
+model Timetable {
+  id       String    @id @default(cuid()) @map("_id")
+  name     String?
+  dateName String?
+  date     DateTime?
+
+  eventId    String
+  event      Event       @relation(fields: [eventId], references: [id])
+  timestamps Timestamp[]
+
+  createdAt DateTime @default(now())
+}
+
+model Timestamp {
+  id               String  @id @default(cuid()) @map("_id")
+  name             String
+  shortDescription String?
+  startTime        String?
+  endTime          String?
+  time             String?
+
+  timetableId String
+  timetable   Timetable @relation(fields: [timetableId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Socials {
+  id        String  @id @default(cuid()) @map("_id")
+  vk        String?
+  instagram String?
+  telegram  String?
+  youtube   String?
+  facebook  String?
+  site      String?
+
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String @unique
+
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id      String @id @default(cuid()) @map("_id")
+  name    String
+  fileUrl String
+
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String
+
+  createdAt DateTime @default(now())
 }
 
 enum UserRole {
@@ -171,7 +250,7 @@ enum UserRole {
 }
 
 enum EventAttendanceStatus {
-  INTERESTED  // Собираюсь пойти
-  GOING       // Пойду
-  ATTENDED    // Посетил(а)
+  INTERESTED // Собираюсь пойти
+  GOING // Пойду
+  ATTENDED // Посетил(а)
 }

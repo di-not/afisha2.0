@@ -1,5 +1,5 @@
 "use server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/shared/lib/prisma";
 import { redirect } from "next/navigation";
 import path from "path";
 import fs from "fs/promises";
@@ -137,4 +137,26 @@ export async function getUserDanceStyles(userId: string) {
                 where: { userId },
                 include: { danceStyle: true },
         });
+}
+export async function getEvents(page: number = 1, limit: number = 10) {
+  try {
+    const response = await fetch(`/api/events?page=${page}&limit=${limit}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    throw error;
+  }
+}
+
+export async function getEvent(id: string) {
+  try {
+    const response = await fetch(`/api/events/${id}`);
+    if (!response.ok) {
+      throw new Error('Event not found');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    throw error;
+  }
 }
