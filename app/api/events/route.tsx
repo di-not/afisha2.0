@@ -1,8 +1,11 @@
 import { prisma } from "@/shared/lib/prisma";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -11,11 +14,11 @@ export async function GET(request: Request) {
     const events = await prisma.event.findMany({
       where: {
         isArchived: false,
+        isConfirmed: true,
       },
       include: {
         place: true,
         tags: true,
-
         organizer: {
           select: {
             id: true,
@@ -24,10 +27,37 @@ export async function GET(request: Request) {
           },
         },
         danceStyle: true,
+        // Добавляем связанные данные для статусов
+        attendees: session ? {
+          where: {
+            userId: session.user.id
+          },
+          select: {
+            status: true
+          }
+        } : false,
+        favoritedBy: session ? {
+          where: {
+            userId: session.user.id
+          },
+          select: {
+            id: true
+          }
+        } : false,
+        bookmarkedBy: session ? {
+          where: {
+            userId: session.user.id
+          },
+          select: {
+            id: true
+          }
+        } : false,
       },
       orderBy: {
         createdAt: "desc",
       },
+      skip,
+      take: limit,
     });
 
     const total = await prisma.event.count({
@@ -37,13 +67,19 @@ export async function GET(request: Request) {
       },
     });
 
-    const eventsWithTags = events.map((event: { tags: any[] }) => ({
+    // Преобразуем данные для удобства использования
+    const eventsWithUserStatus = events.map(event => ({
       ...event,
-      tags: event.tags,
+      // Добавляем поля статуса пользователя
+      userStatus: session ? {
+        isFavorite: event.favoritedBy.length > 0,
+        isBookmarked: event.bookmarkedBy.length > 0,
+        attendanceStatus: event.attendees[0]?.status || null
+      } : null
     }));
 
     return NextResponse.json({
-      events: eventsWithTags,
+      events: eventsWithUserStatus,
       pagination: {
         page,
         limit,

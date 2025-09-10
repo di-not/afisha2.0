@@ -1,11 +1,15 @@
 import { prisma } from '@/shared/lib/prisma';
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    
     const event = await prisma.event.findUnique({
       where: { id: params.id },
       include: {
@@ -26,7 +30,32 @@ export async function GET(
         },
         socials: true,
         documents: true,
-        danceStyle: true
+        danceStyle: true,
+        // Добавляем связанные данные для статусов
+        attendees: session ? {
+          where: {
+            userId: session.user.id
+          },
+          select: {
+            status: true
+          }
+        } : false,
+        favoritedBy: session ? {
+          where: {
+            userId: session.user.id
+          },
+          select: {
+            id: true
+          }
+        } : false,
+        bookmarkedBy: session ? {
+          where: {
+            userId: session.user.id
+          },
+          select: {
+            id: true
+          }
+        } : false,
       }
     });
 
@@ -37,13 +66,17 @@ export async function GET(
       );
     }
 
-    const eventWithTags = {
+    // Добавляем информацию о статусе пользователя
+    const eventWithUserStatus = {
       ...event,
-      tags: event.tags,
-      timetable: event.timetables 
+      userStatus: session ? {
+        isFavorite: event.favoritedBy.length > 0,
+        isBookmarked: event.bookmarkedBy.length > 0,
+        attendanceStatus: event.attendees[0]?.status || null
+      } : null
     };
 
-    return NextResponse.json(eventWithTags);
+    return NextResponse.json(eventWithUserStatus);
   } catch (error) {
     console.error('Error fetching event:', error);
     return NextResponse.json(

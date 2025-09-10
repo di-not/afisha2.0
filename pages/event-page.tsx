@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Event } from "@/prisma/types";
@@ -17,6 +17,8 @@ import DescriptionBlock from "@/widgets/event/ui/description-block";
 import Timetable from "@/widgets/event/ui/timetables-block";
 import { IconBookmark } from "@/shared/icons/bookmark";
 import { IconFavorite } from "@/shared/icons/favorite";
+import { useSession } from "next-auth/react";
+import { useEventStore } from "@/shared/stores/event-store";
 
 export type ActiveTab = "description" | "timetable" | "organizers" | "documents";
 
@@ -30,8 +32,61 @@ const tabs = [
 ];
 
 export default function EventPage({ event }: { event: Event }) {
+  console.log(event)
+  
   const [activeTab, setActiveTab] = useState<ActiveTab>("organizers");
   const [imageSourceVisible, setImageSourceVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { data: session } = useSession();
+  const params = useParams();
+  const eventId = params?.id as string;
+
+  const { getEventStatus, fetchEventStatus, performAction } = useEventStore();
+  const eventStatus = getEventStatus(eventId);
+
+  useEffect(() => {
+    if (session && eventId) {
+      fetchEventStatus(eventId);
+    }
+  }, [session, eventId, fetchEventStatus]);
+
+  const handleAction = async (action: string, data?: any) => {
+    if (!session) return;
+
+    setLoading(true);
+    try {
+      await performAction(eventId, action, data);
+    } catch (error) {
+      console.error("Error performing action:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNotGoing = async () => {
+    if (!session) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/user/events/attendance/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        // Обновляем состояние через store
+        const { updateEventStatus, fetchEventStatus } = useEventStore.getState();
+        updateEventStatus(eventId, { attendanceStatus: null });
+        await fetchEventStatus(eventId);
+      }
+    } catch (error) {
+      console.error("Error removing attendance:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("ru-RU", {
@@ -85,7 +140,6 @@ export default function EventPage({ event }: { event: Event }) {
     >
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between">
-          {/* Хлебные крошки */}
           <nav className="mb-6">
             <ol className="flex items-center space-x-2 text-sm text-gray-600">
               <Link
@@ -99,20 +153,30 @@ export default function EventPage({ event }: { event: Event }) {
             </ol>
           </nav>
           <div className="flex gap-2">
-            <button className="bgPrimary text-white h-fit p-2 rounded-full flex justify-center items-center">
-              <IconBookmark className=" size-[18px]" />
+            <button
+              className={`text-white size-[36px] p-2 rounded-full flex justify-center items-center ${
+                eventStatus.isBookmarked ? "bgButton border-1 border-white" : "bgPrimary"
+              }`}
+              onClick={() => handleAction("bookmark")}
+              disabled={loading}
+            >
+              <IconBookmark className="size-[18px]" />
             </button>
-            <button className="bgPrimary text-white h-fit p-2 rounded-full flex justify-center items-center">
-              <IconFavorite className=" size-[18px]" />
+            <button
+              className={`text-white size-[36px] p-2 rounded-full flex justify-center items-center ${
+                eventStatus.isFavorite ? "bgButton border-1 border-white" : "bgPrimary"
+              }`}
+              onClick={() => handleAction("favorite")}
+              disabled={loading}
+            >
+              <IconFavorite className="size-[18px]" />
             </button>
           </div>
         </div>
 
         <div className="flex gap-6 max-md:flex-col! ">
-          {/* Левая колонка */}
-          <div className="space-y-6 w-100 max-md:w-full ">
-            {/* Изображение */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="space-y-3 w-100 max-md:w-full ">
+            <div className="bg-white rounded-xl shadow-xl/10 overflow-hidden">
               <div className="relative h-full w-full">
                 <img
                   src={event.imageUrl}
@@ -128,25 +192,50 @@ export default function EventPage({ event }: { event: Event }) {
               )}
             </div>
 
-            {/* Блок цены */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="font-bold text-lg mb-4">Диапазон цен</h3>
-              <p className="text-2xl font-bold text-blue-600 mb-4">
-                {formatPrice(event.minPrice, event.maxPrice, event.isFree)}
-              </p>
-
-              {event.organizer && (
-                <Link
-                  href={`/organizer/${event.organizer.id}`}
-                  className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg text-center font-medium hover:from-blue-600 hover:to-blue-700 transition-colors mb-4"
-                >
-                  Связаться с организатором
-                </Link>
+            <div className="bg-white rounded-xl shadow-xl/10 p-6">
+              {session && (
+                <div className="mt-1">
+                  <h3 className="font-bold text-lg mb-4">Пошли бы вы на это событие?</h3>
+                  <div className="flex gap-2">
+                    <button
+                      className={`px-4 py-2 text-sm flex-1 ${
+                        eventStatus.attendanceStatus === "GOING"
+                          ? "bgButton text-white"
+                          : "bgButtonSecondary text-gray-700"
+                      } rounded-lg transition-colors`}
+                      onClick={() => handleAction("attendance", { status: "GOING" })}
+                      disabled={loading}
+                    >
+                      Пойду
+                    </button>
+                    <button
+                      className={`px-4 py-2 text-sm flex-1 ${
+                        eventStatus.attendanceStatus === "INTERESTED"
+                          ? "bgButton text-white"
+                          : "bgButtonSecondary text-gray-700"
+                      } rounded-lg transition-colors`}
+                      onClick={() => handleAction("attendance", { status: "INTERESTED" })}
+                      disabled={loading}
+                    >
+                      Наверно
+                    </button>
+                    <button
+                      className={`px-4 py-2 text-sm flex-1 ${
+                        eventStatus.attendanceStatus === null
+                          ? "bgButton text-white"
+                          : "bgButtonSecondary text-gray-700"
+                      } rounded-lg transition-colors`}
+                      onClick={handleNotGoing}
+                      disabled={loading || eventStatus.attendanceStatus === null}
+                    >
+                      Не пойду
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Правая колонка */}
           <div className="flex-1 h-fit">
             <div className="bg-white rounded-xl shadow-2xl p-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.title}</h1>

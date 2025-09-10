@@ -20,6 +20,12 @@ export interface Event {
   maxPrice?: number | null;
   isOnline: boolean;
   isFree: boolean;
+  
+userStatus?: {
+    isFavorite: boolean;
+    isBookmarked: boolean;
+    attendanceStatus: string | null;
+  } | null;
 
   place?: {
     id: string;
