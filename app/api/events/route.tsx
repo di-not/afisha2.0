@@ -1,3 +1,4 @@
+// app/api/events/route.ts
 import { prisma } from "@/shared/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -10,6 +11,9 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
+
+    // Проверяем, есть ли авторизованный пользователь
+    const userId = session?.user?.id;
 
     const events = await prisma.event.findMany({
       where: {
@@ -27,25 +31,25 @@ export async function GET(request: Request) {
           },
         },
         danceStyle: true,
-        attendees: session ? {
+        attendees: userId ? {
           where: {
-            userId: session.user.id
+            userId: userId
           },
           select: {
             status: true
           }
         } : false,
-        favoritedBy: session ? {
+        favoritedBy: userId ? {
           where: {
-            userId: session.user.id
+            userId: userId
           },
           select: {
             id: true
           }
         } : false,
-        bookmarkedBy: session ? {
+        bookmarkedBy: userId ? {
           where: {
-            userId: session.user.id
+            userId: userId
           },
           select: {
             id: true
@@ -70,10 +74,10 @@ export async function GET(request: Request) {
     const eventsWithUserStatus = events.map(event => ({
       ...event,
       // Добавляем поля статуса пользователя
-      userStatus: session ? {
-        isFavorite: event.favoritedBy.length > 0,
-        isBookmarked: event.bookmarkedBy.length > 0,
-        attendanceStatus: event.attendees[0]?.status || null
+      userStatus: userId ? {
+        isFavorite: event.favoritedBy && event.favoritedBy.length > 0,
+        isBookmarked: event.bookmarkedBy && event.bookmarkedBy.length > 0,
+        attendanceStatus: event.attendees && event.attendees[0]?.status || null
       } : null
     }));
 

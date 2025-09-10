@@ -1,3 +1,4 @@
+// app/api/events/[id]/route.ts
 import { prisma } from "@/shared/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -6,7 +7,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
-    
+
+    const userId = session?.user?.id;
+
     const event = await prisma.event.findUnique({
       where: { id: params.id },
       include: {
@@ -25,34 +28,33 @@ export async function GET(request: Request, { params }: { params: { id: string }
             timestamps: true,
           },
         },
-
         socials: true,
         documents: true,
         danceStyle: true,
-        attendees: session
+        attendees: userId
           ? {
               where: {
-                userId: session.user.id,
+                userId: userId,
               },
               select: {
                 status: true,
               },
             }
           : false,
-        favoritedBy: session
+        favoritedBy: userId
           ? {
               where: {
-                userId: session.user.id,
+                userId: userId,
               },
               select: {
                 id: true,
               },
             }
           : false,
-        bookmarkedBy: session
+        bookmarkedBy: userId
           ? {
               where: {
-                userId: session.user.id,
+                userId: userId,
               },
               select: {
                 id: true,
@@ -65,13 +67,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
+
     const eventWithUserStatus = {
       ...event,
-      userStatus: session
+      userStatus: userId
         ? {
-            isFavorite: event.favoritedBy.length > 0,
-            isBookmarked: event.bookmarkedBy.length > 0,
-            attendanceStatus: event.attendees[0]?.status || null,
+            isFavorite: event.favoritedBy && event.favoritedBy.length > 0,
+            isBookmarked: event.bookmarkedBy && event.bookmarkedBy.length > 0,
+            attendanceStatus: (event.attendees && event.attendees[0]?.status) || null,
           }
         : null,
     };
