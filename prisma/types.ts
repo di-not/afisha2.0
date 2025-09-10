@@ -11,7 +11,7 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  shortDescription?: string | null;
+  shortDescription: string | undefined;
   imageUrl: string;
   startDate?: Date | null;
   endDate?: Date | null;
@@ -20,8 +20,8 @@ export interface Event {
   maxPrice?: number | null;
   isOnline: boolean;
   isFree: boolean;
-  
-userStatus?: {
+
+  userStatus?: {
     isFavorite: boolean;
     isBookmarked: boolean;
     attendanceStatus: string | null;
@@ -38,7 +38,7 @@ userStatus?: {
     organizationName?: string | null;
     organizationCity?: string | null;
   } | null;
-  tags : Array<{
+  tags: Array<{
     id: string;
     name: string;
     color?: string | null;
@@ -48,7 +48,7 @@ userStatus?: {
     id: string;
     name?: string | null;
     dateName?: string | null;
-    date?: Date;
+    date?: Date | null;
     timestamps: Array<{
       id: string;
       name: string;

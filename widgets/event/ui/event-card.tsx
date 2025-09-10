@@ -6,6 +6,7 @@ import Image from "next/image";
 import { IconBookmark } from "@/shared/icons/bookmark";
 import { IconFavorite } from "@/shared/icons/favorite";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface EventCardProps {
   event: {
@@ -39,6 +40,7 @@ export default function EventCard({ event }: EventCardProps) {
     isFavorite: event.userStatus?.isFavorite || false,
     isBookmarked: event.userStatus?.isBookmarked || false,
   });
+  const router = useRouter();
   const { data: session } = useSession();
 
   const formatDate = (date: Date) => {
@@ -58,11 +60,6 @@ export default function EventCard({ event }: EventCardProps) {
   };
 
   const handleAction = async (action: string) => {
-    if (!session) {
-      // Можно перенаправить на страницу входа или показать модальное окно
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await fetch(`/api/user/events/attendance/${event.id}`, {
@@ -75,12 +72,12 @@ export default function EventCard({ event }: EventCardProps) {
 
       if (response.ok) {
         const result = await response.json();
-        
+
         // Обновляем локальное состояние
         if (action === "favorite") {
-          setLocalStatus(prev => ({ ...prev, isFavorite: result.isFavorite }));
+          setLocalStatus((prev) => ({ ...prev, isFavorite: result.isFavorite }));
         } else if (action === "bookmark") {
-          setLocalStatus(prev => ({ ...prev, isBookmarked: result.isBookmarked }));
+          setLocalStatus((prev) => ({ ...prev, isBookmarked: result.isBookmarked }));
         }
       }
     } catch (error) {
@@ -91,22 +88,22 @@ export default function EventCard({ event }: EventCardProps) {
   };
 
   // Используем локальное состояние если пользователь авторизован, иначе данные из props
-  const displayStatus = session ? localStatus : {
-    isFavorite: event.userStatus?.isFavorite || false,
-    isBookmarked: event.userStatus?.isBookmarked || false,
-  };
+  const displayStatus = session
+    ? localStatus
+    : {
+        isFavorite: event.userStatus?.isFavorite || false,
+        isBookmarked: event.userStatus?.isBookmarked || false,
+      };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group relative">
+    <div className="bg-white rounded-4xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group relative">
       {/* Кнопки действий */}
       {session && (
         <div className="absolute top-3 right-3 z-10 flex gap-2">
           <button
             className={`p-2 rounded-full backdrop-blur-sm transition-colors ${
-              displayStatus.isFavorite 
-                ? "bg-red-500/90 text-white" 
-                : "bg-white/80 text-gray-600 hover:bg-white"
-            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              displayStatus.isFavorite ? "bg-red-500/90 text-white" : "bg-white/80 text-gray-600 hover:bg-white"
+            } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -118,10 +115,8 @@ export default function EventCard({ event }: EventCardProps) {
           </button>
           <button
             className={`p-2 rounded-full backdrop-blur-sm transition-colors ${
-              displayStatus.isBookmarked 
-                ? "bg-blue-500/90 text-white" 
-                : "bg-white/80 text-gray-600 hover:bg-white"
-            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              displayStatus.isBookmarked ? "bg-blue-500/90 text-white" : "bg-white/80 text-gray-600 hover:bg-white"
+            } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -135,7 +130,7 @@ export default function EventCard({ event }: EventCardProps) {
       )}
 
       <Link href={`/event/${event.id}`}>
-        <div className="relative h-48">
+        <div className="relative h-60">
           {event.imageUrl ? (
             <Image
               src={event.imageUrl}
@@ -148,37 +143,16 @@ export default function EventCard({ event }: EventCardProps) {
               <span className="text-blue-500 text-4xl">💃</span>
             </div>
           )}
-          
+
           {event.isOnline && (
             <div className="absolute top-3 left-3">
-              <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                Online
-              </span>
+              <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">Online</span>
             </div>
           )}
         </div>
 
-        <div className="p-4">
-          {event.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {event.tags.slice(0, 2).map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
-                  style={{ backgroundColor: tag.color }}
-                >
-                  {tag.name}
-                </span>
-              ))}
-              {event.tags.length > 2 && (
-                <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                  +{event.tags.length - 2}
-                </span>
-              )}
-            </div>
-          )}
-
-          <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+        <div className="p-4 pt-2">
+          <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
             {event.title}
           </h3>
 
@@ -189,15 +163,11 @@ export default function EventCard({ event }: EventCardProps) {
                 {event.endDate && ` - ${formatDate(event.endDate)}`}
               </div>
             )}
-            {event.place && (
-              <div className="text-sm text-gray-600">
-                {event.place.name}
-              </div>
-            )}
+            {event.place && <div className="text-sm text-gray-600">{event.place.name}</div>}
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="font-bold text-blue-600 text-sm">
+            <span className="font-bold text-[var(--primary)] text-sm">
               {formatPrice(event.minPrice, event.maxPrice, event.isFree)}
             </span>
           </div>

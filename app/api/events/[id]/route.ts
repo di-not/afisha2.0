@@ -1,12 +1,9 @@
-import { prisma } from '@/shared/lib/prisma';
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { prisma } from "@/shared/lib/prisma";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -21,67 +18,67 @@ export async function GET(
             fullName: true,
             organizationName: true,
             organizationCity: true,
-          }
+          },
         },
         timetables: {
           include: {
-            timestamps: true
-          }
+            timestamps: true,
+          },
         },
+
         socials: true,
         documents: true,
         danceStyle: true,
-        // Добавляем связанные данные для статусов
-        attendees: session ? {
-          where: {
-            userId: session.user.id
-          },
-          select: {
-            status: true
-          }
-        } : false,
-        favoritedBy: session ? {
-          where: {
-            userId: session.user.id
-          },
-          select: {
-            id: true
-          }
-        } : false,
-        bookmarkedBy: session ? {
-          where: {
-            userId: session.user.id
-          },
-          select: {
-            id: true
-          }
-        } : false,
-      }
+        attendees: session
+          ? {
+              where: {
+                userId: session.user.id,
+              },
+              select: {
+                status: true,
+              },
+            }
+          : false,
+        favoritedBy: session
+          ? {
+              where: {
+                userId: session.user.id,
+              },
+              select: {
+                id: true,
+              },
+            }
+          : false,
+        bookmarkedBy: session
+          ? {
+              where: {
+                userId: session.user.id,
+              },
+              select: {
+                id: true,
+              },
+            }
+          : false,
+      },
     });
 
     if (!event) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
-
-    // Добавляем информацию о статусе пользователя
     const eventWithUserStatus = {
       ...event,
-      userStatus: session ? {
-        isFavorite: event.favoritedBy.length > 0,
-        isBookmarked: event.bookmarkedBy.length > 0,
-        attendanceStatus: event.attendees[0]?.status || null
-      } : null
+      userStatus: session
+        ? {
+            isFavorite: event.favoritedBy.length > 0,
+            isBookmarked: event.bookmarkedBy.length > 0,
+            attendanceStatus: event.attendees[0]?.status || null,
+          }
+        : null,
     };
 
     return NextResponse.json(eventWithUserStatus);
   } catch (error) {
-    console.error('Error fetching event:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch event' },
-      { status: 500 }
-    );
+    console.error("Error fetching event:", error);
+    return NextResponse.json({ error: "Failed to fetch event" }, { status: 500 });
   }
 }

@@ -68,7 +68,7 @@ const [events, setEvents] = useState<Event[]>([]);
       setLoading(false);
     }
   };
-
+// console.log(events)
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">

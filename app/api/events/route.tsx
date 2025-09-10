@@ -27,7 +27,6 @@ export async function GET(request: Request) {
           },
         },
         danceStyle: true,
-        // Добавляем связанные данные для статусов
         attendees: session ? {
           where: {
             userId: session.user.id

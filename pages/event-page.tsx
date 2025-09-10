@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Event } from "@/prisma/types";
 import { IconHome } from "@/shared/icons/home";
@@ -18,7 +18,7 @@ import Timetable from "@/widgets/event/ui/timetables-block";
 import { IconBookmark } from "@/shared/icons/bookmark";
 import { IconFavorite } from "@/shared/icons/favorite";
 import { useSession } from "next-auth/react";
-import { useEventStore } from "@/shared/stores/event-store";
+import { EventAttendanceStatus } from "@prisma/client";
 
 export type ActiveTab = "description" | "timetable" | "organizers" | "documents";
 
@@ -32,30 +32,47 @@ const tabs = [
 ];
 
 export default function EventPage({ event }: { event: Event }) {
-  console.log(event)
-  
+  const [localStatus, setLocalStatus] = useState({
+    isFavorite: event.userStatus?.isFavorite || false,
+    isBookmarked: event.userStatus?.isBookmarked || false,
+  });
+  const [attendance, setAttendance] = useState<EventAttendanceStatus | null | string | undefined>(
+    event.userStatus?.attendanceStatus
+  );
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("organizers");
   const [imageSourceVisible, setImageSourceVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
   const params = useParams();
   const eventId = params?.id as string;
+  const router = useRouter();
 
-  const { getEventStatus, fetchEventStatus, performAction } = useEventStore();
-  const eventStatus = getEventStatus(eventId);
-
-  useEffect(() => {
-    if (session && eventId) {
-      fetchEventStatus(eventId);
-    }
-  }, [session, eventId, fetchEventStatus]);
-
-  const handleAction = async (action: string, data?: any) => {
-    if (!session) return;
-
+  const handleAction = async (action: string, status?: EventAttendanceStatus) => {
     setLoading(true);
+    if(!session){
+      router.push('/login')
+    }
     try {
-      await performAction(eventId, action, data);
+      const response = await fetch(`/api/user/events/attendance/${event.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action, status }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (status) {
+          setAttendance(status);
+        }
+        if (action === "favorite") {
+          setLocalStatus((prev) => ({ ...prev, isFavorite: result.isFavorite }));
+        } else if (action === "bookmark") {
+          setLocalStatus((prev) => ({ ...prev, isBookmarked: result.isBookmarked }));
+        }
+      }
     } catch (error) {
       console.error("Error performing action:", error);
     } finally {
@@ -64,8 +81,9 @@ export default function EventPage({ event }: { event: Event }) {
   };
 
   const handleNotGoing = async () => {
-    if (!session) return;
-
+    if(!session){
+      router.push('/login')
+    }
     setLoading(true);
     try {
       const response = await fetch(`/api/user/events/attendance/${eventId}`, {
@@ -76,10 +94,7 @@ export default function EventPage({ event }: { event: Event }) {
       });
 
       if (response.ok) {
-        // Обновляем состояние через store
-        const { updateEventStatus, fetchEventStatus } = useEventStore.getState();
-        updateEventStatus(eventId, { attendanceStatus: null });
-        await fetchEventStatus(eventId);
+        setAttendance(null);
       }
     } catch (error) {
       console.error("Error removing attendance:", error);
@@ -155,7 +170,7 @@ export default function EventPage({ event }: { event: Event }) {
           <div className="flex gap-2">
             <button
               className={`text-white size-[36px] p-2 rounded-full flex justify-center items-center ${
-                eventStatus.isBookmarked ? "bgButton border-1 border-white" : "bgPrimary"
+                localStatus.isBookmarked ? "bgButton border-1 border-white" : "bgPrimary"
               }`}
               onClick={() => handleAction("bookmark")}
               disabled={loading}
@@ -164,7 +179,7 @@ export default function EventPage({ event }: { event: Event }) {
             </button>
             <button
               className={`text-white size-[36px] p-2 rounded-full flex justify-center items-center ${
-                eventStatus.isFavorite ? "bgButton border-1 border-white" : "bgPrimary"
+                localStatus.isFavorite ? "bgButton border-1 border-white" : "bgPrimary"
               }`}
               onClick={() => handleAction("favorite")}
               disabled={loading}
@@ -199,34 +214,32 @@ export default function EventPage({ event }: { event: Event }) {
                   <div className="flex gap-2">
                     <button
                       className={`px-4 py-2 text-sm flex-1 ${
-                        eventStatus.attendanceStatus === "GOING"
+                        attendance === EventAttendanceStatus.GOING
                           ? "bgButton text-white"
                           : "bgButtonSecondary text-gray-700"
                       } rounded-lg transition-colors`}
-                      onClick={() => handleAction("attendance", { status: "GOING" })}
+                      onClick={() => handleAction("attendance", EventAttendanceStatus.GOING)}
                       disabled={loading}
                     >
                       Пойду
                     </button>
                     <button
                       className={`px-4 py-2 text-sm flex-1 ${
-                        eventStatus.attendanceStatus === "INTERESTED"
+                        attendance === EventAttendanceStatus.INTERESTED
                           ? "bgButton text-white"
                           : "bgButtonSecondary text-gray-700"
                       } rounded-lg transition-colors`}
-                      onClick={() => handleAction("attendance", { status: "INTERESTED" })}
+                      onClick={() => handleAction("attendance", EventAttendanceStatus.INTERESTED)}
                       disabled={loading}
                     >
                       Наверно
                     </button>
                     <button
                       className={`px-4 py-2 text-sm flex-1 ${
-                        eventStatus.attendanceStatus === null
-                          ? "bgButton text-white"
-                          : "bgButtonSecondary text-gray-700"
+                        attendance === null ? "bgButton text-white" : "bgButtonSecondary text-gray-700"
                       } rounded-lg transition-colors`}
                       onClick={handleNotGoing}
-                      disabled={loading || eventStatus.attendanceStatus === null}
+                      disabled={loading || attendance === null}
                     >
                       Не пойду
                     </button>
@@ -253,8 +266,6 @@ export default function EventPage({ event }: { event: Event }) {
                   ))}
                 </div>
               )}
-
-              {/* Место и дата */}
               <div className="flex items-center my-1">
                 {event.place ? (
                   event.place.url ? (
@@ -288,10 +299,8 @@ export default function EventPage({ event }: { event: Event }) {
 
               {event.shortDescription && <p className="font-normal text-lg mb-2">{event.shortDescription}</p>}
 
-              {/* Навигация по табам */}
               <TabNavigation tabs={tabs} setActiveTab={setActiveTab} activeTab={activeTab} />
 
-              {/* Контент табов */}
               <div className="mt-2">
                 {activeTab === "description" && (
                   <>
@@ -351,7 +360,6 @@ export default function EventPage({ event }: { event: Event }) {
                 )}
               </div>
 
-              {/* Социальные сети */}
               {event.socials && (
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <h3 className="font-bold text-lg mb-4">Социальные сети</h3>
