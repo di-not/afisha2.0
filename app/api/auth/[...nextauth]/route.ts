@@ -1,10 +1,10 @@
-// app/api/auth/[...nextauth]/route.ts
 import NextAuth, { AuthOptions } from "next-auth";
 import YandexProvider from "next-auth/providers/yandex";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare, hashSync } from "bcrypt";
-import { UserRole } from "@prisma/client";
+import { User, UserRole } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
+import { RequestInternal } from "next-auth";
 
 // Интерфейс для профиля Яндекс
 interface YandexProfile {
@@ -25,6 +25,29 @@ interface YandexProfile {
   is_avatar_empty?: boolean;
 }
 
+// Вспомогательная функция для преобразования
+const normalizeUser = (user: User): User => ({
+  id: user.id,
+  email: user.email,
+  role: user.role,
+  isOrganizer: user.isOrganizer || false,
+  phone: user.phone || null,
+  city: user.city || null,
+  about: user.about || null,
+  avatar: user.avatar || null,
+  organizationName: user.organizationName || null,
+  organizationCity: user.organizationCity || null,
+  fullName: user.fullName,
+  password: "",
+  mainDanceStyleId: user.mainDanceStyleId,
+  danceSchoolId: user.danceSchoolId,
+  organizationStyleId: user.organizationCity,
+  provider: user.provider,
+  providerId: user.provider,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
+
 export const authOptions: AuthOptions = {
   providers: [
     YandexProvider({
@@ -39,44 +62,126 @@ export const authOptions: AuthOptions = {
         return {
           id: String(profile.id),
           email: profile.default_email || `${profile.id}@yandex.ru`,
-          fullName: profile.display_name || profile.real_name || `User${profile.id}`,
+          name: profile.display_name || profile.real_name || `User${profile.id}`,
           role: "USER" as UserRole,
         };
       },
     }),
+    // Провайдер для входа танцоров
     CredentialsProvider({
-      name: "Credentials",
+      id: "dancer-credentials",
+      name: "DancerCredentials",
       credentials: {
         email: { type: "text", label: "email" },
-        password: { type: "text", label: "password" },
+        password: { type: "password", label: "password" },
       },
-      async authorize(credentials) {
+      async authorize(
+        credentials: Record<"email" | "password", string> | undefined,
+        req: Pick<RequestInternal, "body" | "query" | "headers" | "method">
+      ): Promise<User | null> {
         if (!credentials) return null;
 
         try {
+          // Ищем пользователя с email и ролью ТАНЦОР
           const findUser = await prisma.user.findFirst({
-            where: { email: credentials.email },
+            where: {
+              AND: [{ email: credentials.email }, { role: "USER" }],
+            },
           });
 
-          if (!findUser) return null;
+          if (!findUser) {
+            return null;
+          }
 
-          const isPasswordValid = await compare(
-            credentials.password,
-            findUser.password
-          );
+          const isPasswordValid = await compare(credentials.password, findUser.password);
 
-          if (!isPasswordValid) return null;
+          if (!isPasswordValid) {
+            throw new Error("Неверный пароль");
+          }
 
-          return {
+          return normalizeUser({
             id: String(findUser.id),
             email: findUser.email,
             fullName: findUser.fullName,
             role: findUser.role,
             isOrganizer: findUser.isOrganizer,
-          };
+            phone: findUser.phone,
+            city: findUser.city,
+            about: findUser.about,
+            avatar: findUser.avatar,
+            password: "",
+            mainDanceStyleId: findUser.mainDanceStyleId,
+            danceSchoolId: findUser.danceSchoolId,
+            organizationName: findUser.organizationName,
+            organizationCity: findUser.organizationCity,
+            organizationStyleId: findUser.organizationStyleId,
+            provider: findUser.provider,
+            providerId: findUser.providerId,
+            createdAt: findUser.createdAt,
+            updatedAt: findUser.updatedAt,
+          });
         } catch (error) {
-          console.error("Authorize error:", error);
-          return null;
+          console.error("Dancer authorize error:", error);
+          throw error;
+        }
+      },
+    }),
+    // Провайдер для входа организаторов
+    CredentialsProvider({
+      id: "organizer-credentials",
+      name: "OrganizerCredentials",
+      credentials: {
+        email: { type: "text", label: "email" },
+        password: { type: "password", label: "password" },
+      },
+      async authorize(
+        credentials: Record<"email" | "password", string> | undefined,
+        req: Pick<RequestInternal, "body" | "query" | "headers" | "method">
+      ): Promise<User | null> {
+        if (!credentials) return null;
+
+        try {
+          // Ищем пользователя с email и ролью ОРГАНИЗАТОР
+          const findUser = await prisma.user.findFirst({
+            where: {
+              AND: [{ email: credentials.email }, { role: "ORGANIZER" }],
+            },
+          });
+
+          if (!findUser) {
+            throw new Error("Аккаунт организатора с таким email не найден");
+          }
+
+          const isPasswordValid = await compare(credentials.password, findUser.password);
+
+          if (!isPasswordValid) {
+            throw new Error("Неверный пароль");
+          }
+
+          return normalizeUser({
+            id: String(findUser.id),
+            email: findUser.email,
+            fullName: findUser.fullName,
+            role: findUser.role,
+            isOrganizer: findUser.isOrganizer,
+            phone: findUser.phone,
+            city: findUser.city,
+            about: findUser.about,
+            avatar: findUser.avatar,
+            organizationName: findUser.organizationName,
+            organizationCity: findUser.organizationCity,
+            password: "",
+            mainDanceStyleId: findUser.mainDanceStyleId,
+            danceSchoolId: findUser.danceSchoolId,
+            organizationStyleId: findUser.organizationStyleId,
+            provider: findUser.provider,
+            providerId: findUser.providerId,
+            createdAt: findUser.createdAt,
+            updatedAt: findUser.updatedAt,
+          });
+        } catch (error) {
+          console.error("Organizer authorize error:", error);
+          throw error;
         }
       },
     }),
@@ -84,67 +189,63 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: "/login",
+    error: "/login",
+    signOut: "/",
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, credentials }) {
       try {
-        // Для входа по credentials пропускаем
-        if (account?.provider === "credentials") return true;
-        
-        if (!user.email) {
-          console.error("No email in user profile");
-          return false;
-        }
-
-        // Для OAuth провайдеров (Яндекс)
-        const findUser = await prisma.user.findFirst({
-          where: {
-            OR: [
-              // Ищем по providerId (если пользователь уже логинился через этот провайдер)
-              { 
-                provider: account?.provider, 
-                providerId: account?.providerAccountId 
-              },
-              // Ищем по email (разрешаем одинаковые почты для разных ролей)
-              { 
-                email: user.email,
-                // НЕ фильтруем по провайдеру, чтобы разрешить одинаковые почты
-              },
-            ],
-          },
-        });
-
-        if (findUser) {
-          // Обновляем провайдер если пользователь уже существует
-          await prisma.user.update({
-            where: { id: findUser.id },
-            data: {
-              provider: account?.provider,
-              providerId: account?.providerAccountId,
-              // Сохраняем оригинальную роль пользователя
-            },
-          });
+        // Для входа по credentials пропускаем проверку
+        if (account?.provider === "dancer-credentials" || account?.provider === "organizer-credentials") {
           return true;
         }
 
-        // Создаем нового пользователя для OAuth
-        // Для OAuth пользователей по умолчанию создаем как обычного пользователя
-        // Они смогут стать организаторами через верификацию позже
-        await prisma.user.create({
-          data: {
-            fullName: user.name || "User",
-            email: user.email,
-            role: "USER" as UserRole, // По умолчанию обычный пользователь
-            password: hashSync(Math.random().toString(36) + Date.now().toString(), 10),
-            provider: account?.provider,
-            providerId: account?.providerAccountId,
-            isOrganizer: false, // По умолчанию не организатор
-          },
-        });
+        // Для OAuth провайдеров (Яндекс)
+        if (account?.provider === "yandex") {
+          if (!user.email) {
+            console.error("No email in user profile");
+            return false;
+          }
 
-        return true;
+          // Ищем пользователя по providerId (если уже логинился через Яндекс)
+          const findUser = await prisma.user.findFirst({
+            where: {
+              provider: account.provider,
+              providerId: account.providerAccountId,
+            },
+          });
+
+          if (findUser) {
+            // Обновляем данные провайдера
+            await prisma.user.update({
+              where: { id: findUser.id },
+              data: {
+                provider: account.provider,
+                providerId: account.providerAccountId,
+                fullName: user.name || findUser.fullName,
+              },
+            });
+            return true;
+          }
+
+          // Создаем нового пользователя для OAuth (по умолчанию как танцора)
+          await prisma.user.create({
+            data: {
+              fullName: user.name || "User",
+              email: user.email!,
+              role: "USER" as UserRole,
+              password: hashSync(Math.random().toString(36) + Date.now().toString(), 10),
+              provider: account.provider,
+              providerId: account.providerAccountId,
+              isOrganizer: false,
+            },
+          });
+
+          return true;
+        }
+
+        return false;
       } catch (error) {
         console.error("Error in signIn callback:", error);
         return false;
@@ -156,11 +257,17 @@ export const authOptions: AuthOptions = {
       if (user) {
         return {
           ...token,
-          id: user.id,
+          id: (user as any).id,
           email: user.email,
-          fullName: user.fullName,
-          role: user.role,
+          fullName: (user as any).fullName || user.name,
+          role: (user as any).role,
           isOrganizer: (user as any).isOrganizer || false,
+          phone: (user as any).phone || undefined,
+          city: (user as any).city || undefined,
+          about: (user as any).about || undefined,
+          avatar: (user as any).avatar || undefined,
+          organizationName: (user as any).organizationName || undefined,
+          organizationCity: (user as any).organizationCity || undefined,
         };
       }
 
@@ -170,24 +277,27 @@ export const authOptions: AuthOptions = {
       }
 
       // Для последующих вызовов получаем актуальные данные из БД
-      if (!token.email) return token;
+      if (!token.email || !token.role) return token;
 
       try {
         const findUser = await prisma.user.findFirst({
-          where: { email: token.email },
+          where: {
+            AND: [{ email: token.email as string }, { role: token.role as UserRole }],
+          },
           include: {
             mainDanceStyle: true,
-            additionalStyles: { 
-              include: { 
-                danceStyle: true 
-              } 
+            additionalStyles: {
+              include: {
+                danceStyle: true,
+              },
             },
             danceSchool: true,
             organizationStyle: true,
-          }
+          },
         });
-        
+
         if (!findUser) {
+          console.error("User not found for email:", token.email, "and role:", token.role);
           return { ...token, invalid: true };
         }
 
@@ -202,11 +312,11 @@ export const authOptions: AuthOptions = {
           city: findUser.city || undefined,
           about: findUser.about || undefined,
           avatar: findUser.avatar || undefined,
-          mainDanceStyle: findUser.mainDanceStyle || undefined,
-          additionalStyles: findUser.additionalStyles.map(as => as.danceStyle),
-          danceSchool: findUser.danceSchool || undefined,
           organizationName: findUser.organizationName || undefined,
           organizationCity: findUser.organizationCity || undefined,
+          mainDanceStyle: findUser.mainDanceStyle || undefined,
+          additionalStyles: findUser.additionalStyles.map((as) => as.danceStyle),
+          danceSchool: findUser.danceSchool || undefined,
           organizationStyle: findUser.organizationStyle || undefined,
         };
       } catch (error) {
@@ -215,7 +325,7 @@ export const authOptions: AuthOptions = {
       }
     },
 
-    session({ session, token }) {
+    async session({ session, token }) {
       if (token.invalid || token.error) {
         // Возвращаем сессию без user если токен невалиден
         const { user, ...rest } = session;
@@ -228,6 +338,7 @@ export const authOptions: AuthOptions = {
           ...session.user,
           id: token.id as string,
           email: token.email as string,
+          name: token.fullName as string,
           fullName: token.fullName as string,
           role: token.role as UserRole,
           phone: token.phone as string | undefined,
@@ -244,6 +355,14 @@ export const authOptions: AuthOptions = {
         },
       };
     },
+
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
   },
 
   // Обработка ошибок
@@ -254,7 +373,15 @@ export const authOptions: AuthOptions = {
     async signOut(message) {
       console.log("Sign out successful", message);
     },
-    
+    async createUser(message) {
+      console.log("User created", message);
+    },
+    async linkAccount(message) {
+      console.log("Account linked", message);
+    },
+    async session(message) {
+      console.log("Session active", message);
+    },
   },
 
   // Настройки debug

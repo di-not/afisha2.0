@@ -1,33 +1,37 @@
-// app/(root)/profile/page.tsx
-'use client'
-import { useSession } from "next-auth/react";
+
+"use client";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
   const [loading, setLoading] = useState(false);
   const [avatar, setAvatar] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState(session?.user?.avatar || "https://i.pinimg.com/736x/82/40/7e/82407e8e0aaa33e0c7ec1c450c0d28a1.jpg");
+  const [avatarPreview, setAvatarPreview] = useState(
+    session?.user?.avatar || "https://i.pinimg.com/736x/82/40/7e/82407e8e0aaa33e0c7ec1c450c0d28a1.jpg"
+  );
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  
+
   const form = useForm({
     defaultValues: {
-      phone: session?.user?.phone || '',
-      email: session?.user?.email || '',
-      city: session?.user?.city || '',
-    }
+      phone: session?.user?.phone || "",
+      email: session?.user?.email || "",
+      city: session?.user?.city || "",
+    },
   });
 
   // Обновляем форму при изменении сессии
   useEffect(() => {
     if (session?.user) {
       form.reset({
-        phone: session.user.phone || '',
-        email: session.user.email || '',
-        city: session.user.city || '',
+        phone: session.user.phone || "",
+        email: session.user.email || "",
+        city: session.user.city || "",
       });
-      setAvatarPreview(session.user.avatar || "https://i.pinimg.com/736x/82/40/7e/82407e8e0aaa33e0c7ec1c450c0d28a1.jpg");
+      setAvatarPreview(
+        session.user.avatar || "https://i.pinimg.com/736x/82/40/7e/82407e8e0aaa33e0c7ec1c450c0d28a1.jpg"
+      );
     }
   }, [session, form]);
 
@@ -49,10 +53,10 @@ export default function ProfilePage() {
 
     try {
       const formData = new FormData();
-      formData.append('avatar', avatar);
+      formData.append("avatar", avatar);
 
-      const response = await fetch('/api/user/avatar', {
-        method: 'POST',
+      const response = await fetch("/api/user/avatar", {
+        method: "POST",
         body: formData,
       });
 
@@ -62,7 +66,7 @@ export default function ProfilePage() {
       }
       return null;
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      console.error("Error uploading avatar:", error);
       return null;
     }
   };
@@ -77,13 +81,13 @@ export default function ProfilePage() {
 
       const updateData = {
         ...data,
-        ...(avatarUrl && { avatar: avatarUrl })
+        ...(avatarUrl && { avatar: avatarUrl }),
       };
 
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(updateData),
       });
@@ -91,14 +95,14 @@ export default function ProfilePage() {
       if (response.ok) {
         await update();
         setAvatar(null);
-        alert('Данные успешно обновлены!');
+        alert("Данные успешно обновлены!");
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Ошибка обновления данных');
+        alert(errorData.error || "Ошибка обновления данных");
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Ошибка обновления данных');
+      console.error("Error updating profile:", error);
+      alert("Ошибка обновления данных");
     } finally {
       setLoading(false);
     }
@@ -107,41 +111,41 @@ export default function ProfilePage() {
   const handlePasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const currentPassword = formData.get('currentPassword') as string;
-    const newPassword = formData.get('newPassword') as string;
-    const confirmPassword = formData.get('confirmPassword') as string;
+    const currentPassword = formData.get("currentPassword") as string;
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
 
     if (newPassword !== confirmPassword) {
-      alert('Новые пароли не совпадают');
+      alert("Новые пароли не совпадают");
       return;
     }
 
     try {
-      const response = await fetch('/api/user/password', {
-        method: 'PUT',
+      const response = await fetch("/api/user/password", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
 
       if (response.ok) {
         setShowPasswordModal(false);
-        alert('Пароль успешно изменен!');
+        alert("Пароль успешно изменен!");
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Ошибка смены пароля');
+        alert(errorData.error || "Ошибка смены пароля");
       }
     } catch (error) {
-      console.error('Error changing password:', error);
-      alert('Ошибка смены пароля');
+      console.error("Error changing password:", error);
+      alert("Ошибка смены пароля");
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Личная информация</h1>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Аватар и основная информация */}
         <div className="space-y-6">
@@ -153,12 +157,7 @@ export default function ProfilePage() {
                 className="size-32! rounded-full object-cover border-4 border-white shadow-lg"
               />
               <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
+                <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                 📷
               </label>
               {avatar && (
@@ -167,21 +166,19 @@ export default function ProfilePage() {
                 </span>
               )}
             </div>
-            
+
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900">
-                {session?.user?.fullName}
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900">{session?.user?.fullName}</h2>
               <p className="text-gray-600">{session?.user?.email}</p>
               <p className="text-sm text-gray-500 mt-1">
-                {session?.user?.isOrganizer ? 'Организатор' : 'Участник'}
+                {session?.user?.role === "ORGANIZER" ? "Организатор" : "Танцор"}
               </p>
             </div>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="font-semibold text-gray-900 mb-3">Безопасность</h3>
-            <button 
+            <button
               onClick={() => setShowPasswordModal(true)}
               className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
             >
@@ -194,9 +191,7 @@ export default function ProfilePage() {
         <div>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Телефон
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Телефон</label>
               <input
                 {...form.register("phone")}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -205,9 +200,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
                 {...form.register("email")}
                 type="email"
@@ -217,9 +210,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Город
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Город</label>
               <input
                 {...form.register("city")}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -245,9 +236,7 @@ export default function ProfilePage() {
             <h3 className="text-lg font-semibold mb-4">Смена пароля</h3>
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Текущий пароль
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Текущий пароль</label>
                 <input
                   name="currentPassword"
                   type="password"
@@ -256,9 +245,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Новый пароль
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Новый пароль</label>
                 <input
                   name="newPassword"
                   type="password"
@@ -268,9 +255,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Подтвердите новый пароль
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Подтвердите новый пароль</label>
                 <input
                   name="confirmPassword"
                   type="password"
@@ -287,10 +272,7 @@ export default function ProfilePage() {
                 >
                   Отмена
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-                >
+                <button type="submit" className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">
                   Сохранить
                 </button>
               </div>
