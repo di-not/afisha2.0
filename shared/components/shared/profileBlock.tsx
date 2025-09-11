@@ -2,7 +2,6 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import ProfileLink from "@/public/images/profile_icon.svg";
-import LogInBlock from "./logInBlock";
 
 interface ProfileBlockProps {}
 const ProfileBlock: React.FC<ProfileBlockProps> = () => {

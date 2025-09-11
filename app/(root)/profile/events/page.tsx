@@ -1,4 +1,3 @@
-// app/(root)/profile/events/page.tsx
 export default function EventsPage() {
   return (
     <div className="max-w-4xl mx-auto">

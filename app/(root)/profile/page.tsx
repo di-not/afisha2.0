@@ -1,8 +1,13 @@
-
 "use client";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+
+interface ProfileFormData {
+  phone: string;
+  email: string;
+  city: string;
+}
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
@@ -13,7 +18,7 @@ export default function ProfilePage() {
   );
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  const form = useForm({
+  const form = useForm<ProfileFormData>({
     defaultValues: {
       phone: session?.user?.phone || "",
       email: session?.user?.email || "",
@@ -71,7 +76,7 @@ export default function ProfilePage() {
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ProfileFormData) => {
     setLoading(true);
     try {
       let avatarUrl = null;

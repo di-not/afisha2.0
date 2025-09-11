@@ -1,4 +1,3 @@
-
 export default function InterestsPage() {
   return (
     <div className="max-w-4xl mx-auto">

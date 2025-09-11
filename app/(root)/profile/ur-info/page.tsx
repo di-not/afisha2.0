@@ -1,4 +1,3 @@
-// app/(root)/profile/ur-info/page.tsx
 export default function UrInfoPage() {
   return (
     <div className="max-w-4xl mx-auto">

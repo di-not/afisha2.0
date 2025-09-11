@@ -1,5 +1,4 @@
-// app/(auth)/login/dancer/page.tsx
-'use client'
+"use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,15 +26,15 @@ export default function DancerLoginPage() {
   });
 
   useEffect(() => {
-    const errorParam = searchParams?.get('error');
-    const yandexParam = searchParams?.get('yandex');
-    
+    const errorParam = searchParams?.get("error");
+    const yandexParam = searchParams?.get("yandex");
+
     if (errorParam) {
       switch (errorParam) {
-        case 'CredentialsSignin':
+        case "CredentialsSignin":
           setError("Неверный email или пароль");
           break;
-        case 'OAuthAccountNotLinked':
+        case "OAuthAccountNotLinked":
           setError("Аккаунт Яндекс уже привязан к другому email");
           break;
         default:
@@ -44,7 +43,7 @@ export default function DancerLoginPage() {
     }
 
     // Автоматический вход через Яндекс если передан параметр
-    if (yandexParam === 'true') {
+    if (yandexParam === "true") {
       handleYandexLogin();
     }
   }, [searchParams]);
@@ -52,7 +51,7 @@ export default function DancerLoginPage() {
   const onSubmit = async (data: any) => {
     setLoading(true);
     setError("");
-    
+
     try {
       const res = await signIn("dancer-credentials", {
         email: data.email,
@@ -75,11 +74,11 @@ export default function DancerLoginPage() {
   const handleYandexLogin = async () => {
     setYandexLoading(true);
     setError("");
-    
+
     try {
-      await signIn("yandex", { 
+      await signIn("yandex", {
         callbackUrl: "/profile",
-        redirect: true 
+        redirect: true,
       });
     } catch (error) {
       setError("Ошибка входа через Яндекс");
@@ -98,11 +97,7 @@ export default function DancerLoginPage() {
           <p className="mt-2 text-gray-600">Введите данные для входа в аккаунт танцора</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">{error}</div>}
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <input
@@ -111,11 +106,7 @@ export default function DancerLoginPage() {
             placeholder="Email"
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <PasswordInput
-            formStates={form}
-            name="password"
-            placeholder="Пароль"
-          />
+          <PasswordInput formStates={form} name="password" placeholder="Пароль" />
 
           <button
             type="submit"
@@ -133,12 +124,11 @@ export default function DancerLoginPage() {
         </div>
 
         <button
-          onClick={handleYandexLogin}
-          disabled={yandexLoading}
-          className="w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          onClick={() => signIn("yandex-dancer", { callbackUrl: "/profile" })}
+          className="w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
         >
           <Yandex width={20} height={20} />
-          <span>{yandexLoading ? "Вход..." : "Войти через Яндекс"}</span>
+          <span>Войти через Яндекс</span>
         </button>
 
         <div className="text-center space-y-2">

@@ -1,4 +1,3 @@
-// app/(root)/profile/requisites/page.tsx
 export default function RequisitesPage() {
   return (
     <div className="max-w-4xl mx-auto">

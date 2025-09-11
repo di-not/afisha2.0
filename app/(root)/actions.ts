@@ -4,8 +4,6 @@ import { redirect } from "next/navigation";
 import path from "path";
 import fs from "fs/promises";
 import { randomUUID } from "crypto";
-import { Prisma } from "@prisma/client";
-import { NextResponse } from "next/server";
 import { hashSync } from "bcrypt";
 
 export type ProductInput = {
@@ -120,7 +118,6 @@ export async function registerUser(data: {
   }
 }
 
-// Новые функции для работы с дополнительными стилями
 export async function addDanceStyleToUser(userId: string, danceStyleId: string) {
   return await prisma.userDanceStyle.create({
     data: {

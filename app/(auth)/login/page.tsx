@@ -1,9 +1,9 @@
-// app/(auth)/login/page.tsx
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Yandex from "@/public/images/yandex.svg";
+import { signIn } from "next-auth/react";
 
 export default function LoginSelectionPage() {
   const searchParams = useSearchParams();
@@ -24,6 +24,9 @@ export default function LoginSelectionPage() {
       }
     }
   }, [searchParams]);
+
+  const handleYandexDancer = () => signIn("yandex-dancer", { callbackUrl: "/profile" });
+  const handleYandexOrganizer = () => signIn("yandex-organizer", { callbackUrl: "/profile" });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
@@ -61,13 +64,22 @@ export default function LoginSelectionPage() {
           <div className="flex-1 h-px bg-gray-300"></div>
         </div>
 
-        {/* Яндекс вход (по умолчанию как танцор) */}
+        {/* Яндекс вход для танцора */}
         <button
-          onClick={() => (window.location.href = "/login/dancer?yandex=true")}
+          onClick={handleYandexDancer}
+          className="w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors mb-3"
+        >
+          <Yandex width={20} height={20} />
+          <span>Войти через Яндекс (Танцор)</span>
+        </button>
+
+        {/* Яндекс вход для организатора */}
+        <button
+          onClick={handleYandexOrganizer}
           className="w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
         >
           <Yandex width={20} height={20} />
-          <span>Войти через Яндекс</span>
+          <span>Войти через Яндекс (Организатор)</span>
         </button>
 
         <div className="text-center space-y-2">

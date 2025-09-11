@@ -1,4 +1,4 @@
-// app/(root)/profile/support/page.tsx
+
 export default function SupportPage() {
   const supportItems = [
     { name: "Как поддержать проект", href: "/support/donate", icon: "❤️" },

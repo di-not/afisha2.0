@@ -1,4 +1,3 @@
-// app/(root)/profile/dancer/page.tsx
 'use client'
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";

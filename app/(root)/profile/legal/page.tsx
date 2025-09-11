@@ -1,4 +1,3 @@
-// app/(root)/profile/legal/page.tsx
 export default function LegalPage() {
   const legalDocs = [
     { name: "Оферта", href: "/legal/offer" },

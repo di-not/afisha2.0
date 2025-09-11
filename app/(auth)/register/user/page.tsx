@@ -1,4 +1,3 @@
-// app/(auth)/register/user/page.tsx
 'use client'
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +9,7 @@ import { PasswordInput } from "@/shared/components/ui/passwordInput";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Yandex from "@/public/images/yandex.svg";
+import { Input } from "@/shared/components/ui/input";
 
 const schema = z.object({
   email: z.string().email("Некорректный email"),
@@ -47,12 +47,19 @@ export default function UserRegistrationPage() {
     }
   };
 
+  const handleYandexLogin = async () => {
+    await signIn("yandex", { 
+      callbackUrl: "/profile",
+      state: "dancer"
+    });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bgGradient py-12 px-4">
+      <div className="w-full space-y-8 p-8 bg-white rounded-4xl shadow-lg bgPrimary max-w-[480px]">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Регистрация участника</h2>
-          <p className="mt-2 text-gray-600">Создайте аккаунт для участия в мероприятиях</p>
+          <h2 className="text-[28px] font-bold text-white text-left">Регистрация участника</h2>
+          <p className="mt-2 text-white text-left">Создайте аккаунт для участия в мероприятиях</p>
         </div>
 
         {error && (
@@ -61,28 +68,11 @@ export default function UserRegistrationPage() {
           </div>
         )}
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <input
-            {...form.register("fullName")}
-            placeholder="ФИО"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <input
-            {...form.register("email")}
-            type="email"
-            placeholder="Email"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <PasswordInput
-            formStates={form}
-            name="password"
-            placeholder="Пароль"
-          />
-          <input
-            {...form.register("phone")}
-            placeholder="Телефон (необязательно)"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <Input name="fullName" formStates={form} placeholder="ФИО" className="w-full p-3" />
+          <Input name="email" type="email" formStates={form} placeholder="Email" className="w-full p-3" />
+          <PasswordInput formStates={form} name="password" placeholder="Пароль" />
+          <Input name="phone" formStates={form} placeholder="Телефон (необязательно)" className="w-full p-3" />
 
           <button
             type="submit"
@@ -95,26 +85,26 @@ export default function UserRegistrationPage() {
 
         <div className="w-full my-4 flex items-center">
           <div className="flex-1 h-px bg-gray-300"></div>
-          <span className="px-3 text-sm text-gray-500">или</span>
+          <span className="px-3 text-sm text-white">или</span>
           <div className="flex-1 h-px bg-gray-300"></div>
         </div>
 
         <button
-          onClick={() => signIn("yandex", { callbackUrl: "/profile" })}
-          className="w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+          onClick={handleYandexLogin}
+          className="w-full p-2 border border-gray-300 rounded-full flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
         >
-          <Yandex width={20} height={20} />
-          <span>Войти через Яндекс</span>
+          <Yandex />
+          <span className="text-white">Войти через Яндекс</span>
         </button>
 
         <div className="text-center space-y-2">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white">
             Уже есть аккаунт?{" "}
             <Link href="/login" className="text-(--primary) hover:underline">
               Войти
             </Link>
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white">
             Хотите создавать мероприятия?{" "}
             <Link href="/register/organizer" className="text-(--primary) hover:underline">
               Регистрация организатора

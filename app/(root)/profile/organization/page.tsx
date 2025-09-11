@@ -1,4 +1,3 @@
-// app/(root)/profile/organization/page.tsx
 export default function OrganizationPage() {
   return (
     <div className="max-w-4xl mx-auto">

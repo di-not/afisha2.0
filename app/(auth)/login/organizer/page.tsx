@@ -1,5 +1,4 @@
-// app/(auth)/login/organizer/page.tsx
-'use client'
+"use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PasswordInput } from "@/shared/components/ui/passwordInput";
 import { useState, useEffect } from "react";
-
+import Yandex from "@/public/images/yandex.svg";
 const schema = z.object({
   email: z.string().email("Некорректный email"),
   password: z.string().min(1, "Пароль обязателен"),
@@ -25,13 +24,13 @@ export default function OrganizerLoginPage() {
   });
 
   useEffect(() => {
-    const errorParam = searchParams?.get('error');
+    const errorParam = searchParams?.get("error");
     if (errorParam) {
       switch (errorParam) {
-        case 'CredentialsSignin':
+        case "CredentialsSignin":
           setError("Неверный email или пароль");
           break;
-        case 'OAuthAccountNotLinked':
+        case "OAuthAccountNotLinked":
           setError("Аккаунт Яндекс уже привязан к другому email");
           break;
         default:
@@ -43,7 +42,7 @@ export default function OrganizerLoginPage() {
   const onSubmit = async (data: any) => {
     setLoading(true);
     setError("");
-    
+
     try {
       const res = await signIn("organizer-credentials", {
         email: data.email,
@@ -74,11 +73,7 @@ export default function OrganizerLoginPage() {
           <p className="mt-2 text-gray-600">Введите данные для входа в аккаунт организатора</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">{error}</div>}
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <input
@@ -87,11 +82,7 @@ export default function OrganizerLoginPage() {
             placeholder="Email"
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <PasswordInput
-            formStates={form}
-            name="password"
-            placeholder="Пароль"
-          />
+          <PasswordInput formStates={form} name="password" placeholder="Пароль" />
 
           <button
             type="submit"
@@ -117,10 +108,13 @@ export default function OrganizerLoginPage() {
           </p>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm">
-          <strong>Внимание:</strong> Для входа через Яндекс используйте вход как танцор, 
-          затем в настройках профиля можно будет получить права организатора.
-        </div>
+        <button
+          onClick={() => signIn("yandex-organizer", { callbackUrl: "/profile" })}
+          className="w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+        >
+          <Yandex width={20} height={20} />
+          <span>Войти через Яндекс</span>
+        </button>
       </div>
     </div>
   );

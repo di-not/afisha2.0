@@ -1,4 +1,3 @@
-// prisma/seed-real-events.ts
 import { PrismaClient } from "@prisma/client";
 import { ObjectId } from "mongodb";
 

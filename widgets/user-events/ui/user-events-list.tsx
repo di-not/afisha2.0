@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 interface Event {
   id: string;
@@ -35,7 +35,7 @@ interface Pagination {
 }
 
 interface UserEventsListProps {
-  type: 'favorite' | 'bookmarks' | 'gonnago' | 'willgo';
+  type: "favorite" | "bookmarks" | "gonnago" | "willgo";
   title: string;
 }
 
@@ -46,13 +46,13 @@ export default function UserEventsList({ type, title }: UserEventsListProps) {
     page: 1,
     limit: 12,
     total: 0,
-    pages: 0
+    pages: 0,
   });
-  
+
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status !== 'loading') {
+    if (status !== "loading") {
       fetchEvents();
     }
   }, [type, status]);
@@ -61,45 +61,44 @@ export default function UserEventsList({ type, title }: UserEventsListProps) {
     try {
       setLoading(true);
       const response = await fetch(`/api/user/events/lists/${type}?page=${page}&limit=12`);
-      
+
       if (response.status === 401) {
         // Пользователь не авторизован
         setEvents([]);
         setLoading(false);
         return;
       }
-      
 
       const data = await response.json();
-      
+
       if (response.ok) {
         setEvents(data.events);
         setPagination(data.pagination);
       }
     } catch (error) {
-      console.error('Error fetching user events:', error);
+      console.error("Error fetching user events:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    return new Date(date).toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
   const formatPrice = (minPrice?: number, maxPrice?: number, isFree?: boolean) => {
-    if (isFree) return 'Бесплатно';
+    if (isFree) return "Бесплатно";
     if (minPrice && maxPrice) return `${minPrice} - ${maxPrice} руб`;
     if (minPrice) return `от ${minPrice} руб`;
     if (maxPrice) return `до ${maxPrice} руб`;
-    return 'Цена не указана';
+    return "Цена не указана";
   };
 
-  if (status === 'loading' || loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="animate-pulse">
         <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
@@ -145,10 +144,10 @@ export default function UserEventsList({ type, title }: UserEventsListProps) {
           <div className="text-gray-400 text-6xl mb-4">📋</div>
           <h3 className="text-lg font-medium text-gray-600 mb-2">Здесь пока ничего нет</h3>
           <p className="text-gray-500 mb-4">
-            {type === 'favorite' && 'Добавьте мероприятия в избранное, чтобы они появились здесь'}
-            {type === 'bookmarks' && 'Добавьте мероприятия в закладки, чтобы они появились здесь'}
-            {type === 'gonnago' && 'Отметьте мероприятия как "Я собираюсь", чтобы они появились здесь'}
-            {type === 'willgo' && 'Отметьте мероприятия как "Я пойду", чтобы они появились здесь'}
+            {type === "favorite" && "Добавьте мероприятия в избранное, чтобы они появились здесь"}
+            {type === "bookmarks" && "Добавьте мероприятия в закладки, чтобы они появились здесь"}
+            {type === "gonnago" && 'Отметьте мероприятия как "Я собираюсь", чтобы они появились здесь'}
+            {type === "willgo" && 'Отметьте мероприятия как "Я пойду", чтобы они появились здесь'}
           </p>
           <Link
             href="/"
@@ -189,7 +188,7 @@ export default function UserEventsList({ type, title }: UserEventsListProps) {
                     <h3 className="font-bold text-xl mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
                       {event.title}
                     </h3>
-                    
+
                     {event.shortDescription && (
                       <p className="text-gray-600 mb-3 line-clamp-2">{event.shortDescription}</p>
                     )}
@@ -208,12 +207,8 @@ export default function UserEventsList({ type, title }: UserEventsListProps) {
 
                     <div className="flex justify-between items-center text-sm text-gray-500">
                       <div>
-                        {event.startDate && (
-                          <span className="block">{formatDate(event.startDate)}</span>
-                        )}
-                        {event.place && (
-                          <span className="block text-xs">{event.place.name}</span>
-                        )}
+                        {event.startDate && <span className="block">{formatDate(event.startDate)}</span>}
+                        {event.place && <span className="block text-xs">{event.place.name}</span>}
                       </div>
                       <span className="font-bold text-blue-600">
                         {formatPrice(event.minPrice, event.maxPrice, event.isFree)}
@@ -236,22 +231,22 @@ export default function UserEventsList({ type, title }: UserEventsListProps) {
                     Назад
                   </button>
                 )}
-                
+
                 {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
                   let pageNum = i + 1;
                   if (pagination.page > 3) {
                     pageNum = pagination.page - 2 + i;
                   }
                   if (pageNum > pagination.pages) return null;
-                  
+
                   return (
                     <button
                       key={pageNum}
                       onClick={() => fetchEvents(pageNum)}
                       className={`px-4 py-2 rounded ${
                         pagination.page === pageNum
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       }`}
                     >
                       {pageNum}

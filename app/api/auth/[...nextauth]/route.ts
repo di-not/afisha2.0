@@ -51,6 +51,8 @@ const normalizeUser = (user: User): User => ({
 export const authOptions: AuthOptions = {
   providers: [
     YandexProvider({
+      id: "yandex-dancer",
+      name: "YandexDancer",
       clientId: process.env.YANDEX_CLIENT_ID || "",
       clientSecret: process.env.YANDEX_CLIENT_SECRET || "",
       authorization: {
@@ -58,12 +60,33 @@ export const authOptions: AuthOptions = {
           scope: "login:email login:info",
         },
       },
-      profile(profile: YandexProfile) {
+      async profile(profile: YandexProfile) {
         return {
           id: String(profile.id),
           email: profile.default_email || `${profile.id}@yandex.ru`,
           name: profile.display_name || profile.real_name || `User${profile.id}`,
-          role: "USER" as UserRole,
+          fullName: profile.display_name || profile.real_name || `User${profile.id}`,
+          role: "USER",
+        };
+      },
+    }),
+    YandexProvider({
+      id: "yandex-organizer",
+      name: "YandexOrganizer",
+      clientId: process.env.YANDEX_CLIENT_ID || "",
+      clientSecret: process.env.YANDEX_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          scope: "login:email login:info",
+        },
+      },
+      async profile(profile: YandexProfile) {
+        return {
+          id: String(profile.id),
+          email: profile.default_email || `${profile.id}@yandex.ru`,
+          name: profile.display_name || profile.real_name || `User${profile.id}`,
+          fullName: profile.display_name || profile.real_name || `User${profile.id}`,
+          role: "ORGANIZER",
         };
       },
     }),
@@ -196,56 +219,52 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async signIn({ user, account, profile, credentials }) {
       try {
-        // Для входа по credentials пропускаем проверку
-        if (account?.provider === "dancer-credentials" || account?.provider === "organizer-credentials") {
-          return true;
-        }
+        // Для OAuth провайдеров Яндекс
+        if (account?.provider?.startsWith("yandex-")) {
+          if (!user.email) return false;
 
-        // Для OAuth провайдеров (Яндекс)
-        if (account?.provider === "yandex") {
-          if (!user.email) {
-            console.error("No email in user profile");
-            return false;
-          }
+          const role = account.provider === "yandex-organizer" ? "ORGANIZER" : "USER";
 
-          // Ищем пользователя по providerId (если уже логинился через Яндекс)
+          // Ищем пользователя по providerId И роли
           const findUser = await prisma.user.findFirst({
             where: {
               provider: account.provider,
               providerId: account.providerAccountId,
+              role: role,
             },
           });
 
           if (findUser) {
-            // Обновляем данные провайдера
+            // Обновляем данные существующего пользователя
             await prisma.user.update({
               where: { id: findUser.id },
               data: {
                 provider: account.provider,
                 providerId: account.providerAccountId,
-                fullName: user.name || findUser.fullName,
+                fullName: (user as User).fullName || user.name || findUser.fullName,
               },
             });
             return true;
           }
 
-          // Создаем нового пользователя для OAuth (по умолчанию как танцора)
+          // Создаем нового пользователя с указанной ролью
           await prisma.user.create({
             data: {
-              fullName: user.name || "User",
+              fullName: (user as User).fullName || user.name || "User",
               email: user.email!,
-              role: "USER" as UserRole,
+              role: role,
               password: hashSync(Math.random().toString(36) + Date.now().toString(), 10),
               provider: account.provider,
               providerId: account.providerAccountId,
-              isOrganizer: false,
+              isOrganizer: role === "ORGANIZER",
             },
           });
 
           return true;
         }
 
-        return false;
+        // Для credentials провайдеров
+        return true;
       } catch (error) {
         console.error("Error in signIn callback:", error);
         return false;
