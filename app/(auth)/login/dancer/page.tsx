@@ -8,6 +8,7 @@ import Link from "next/link";
 import { PasswordInput } from "@/shared/components/ui/passwordInput";
 import { useState, useEffect } from "react";
 import Yandex from "@/public/images/yandex.svg";
+import { Input } from "@/shared/components/ui/input";
 
 const schema = z.object({
   email: z.string().email("Некорректный email"),
@@ -87,64 +88,52 @@ export default function DancerLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bgGradient py-12 px-4">
+      <div className="w-full space-y-8 p-8 bg-white rounded-4xl shadow-lg bgPrimary max-w-[480px]">
         <div className="text-center">
-          <Link href="/login" className="inline-block mb-4 text-blue-500 hover:underline">
+          <Link href="/login" className="inline-block mb-4 text-[var(--primary)] hover:underline">
             ← Назад к выбору входа
           </Link>
-          <h2 className="text-3xl font-bold text-gray-900">Вход как Танцор</h2>
-          <p className="mt-2 text-gray-600">Введите данные для входа в аккаунт танцора</p>
+          <h2 className="text-3xl font-bold text-white">Вход как Танцор</h2>
+          <p className="mt-2 text-white">Введите данные для входа в аккаунт танцора</p>
         </div>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">{error}</div>}
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <input
-            {...form.register("email")}
-            type="email"
-            placeholder="Email"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <Input formStates={form} type="email" name="email" placeholder="Email" className="w-full" />
           <PasswordInput formStates={form} name="password" placeholder="Пароль" />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 transition-colors"
+            className="w-full bgButton p-3 font-semibold"
           >
             {loading ? "Вход..." : "Войти как Танцор"}
           </button>
         </form>
 
-        <div className="w-full my-4 flex items-center">
-          <div className="flex-1 h-px bg-gray-300"></div>
-          <span className="px-3 text-sm text-gray-500">или</span>
-          <div className="flex-1 h-px bg-gray-300"></div>
-        </div>
-
-        <button
-          onClick={() => signIn("yandex-dancer", { callbackUrl: "/profile" })}
-          className="w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
-        >
-          <Yandex width={20} height={20} />
-          <span>Войти через Яндекс</span>
-        </button>
-
         <div className="text-center space-y-2">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white">
             Нет аккаунта танцора?{" "}
-            <Link href="/register/user" className="text-blue-500 hover:underline">
+            <Link href="/register/dancer" className="text-[var(--primary)] hover:underline">
               Зарегистрироваться
             </Link>
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white">
             Хотите войти как организатор?{" "}
-            <Link href="/login/organizer" className="text-blue-500 hover:underline">
+            <Link href="/login/organizer" className="text-[var(--primary)] hover:underline">
               Вход для организаторов
             </Link>
           </p>
         </div>
+        <button
+          onClick={() => signIn("yandex-dancer", { callbackUrl: "/profile" })}
+          className="w-full bgButton p-3 font-semibold gap-2"
+        >
+          <span>Войти через</span>
+          <img src={"/images/yandex.svg"} alt="" className="w-6 h-6" />
+        </button>
       </div>
     </div>
   );

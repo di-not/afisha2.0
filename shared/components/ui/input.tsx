@@ -70,7 +70,7 @@ const Input = React.forwardRef<HTMLInputElement, Props>(
           onChange={onChange}
           {...formStates.register(name)}
           data-slot="input"
-          className={cn(`bgInput p-2.5 pl-5 pr-14 w-full`, className)}
+          className={cn(`bgInput p-3 pr-14 w-full `, className)}
           {...props}
         />
 

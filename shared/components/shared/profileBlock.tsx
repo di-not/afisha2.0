@@ -16,7 +16,7 @@ const ProfileBlock: React.FC<ProfileBlockProps> = () => {
       ) : (
         <>
           <Link
-            href="/register/user"
+            href="/register/dancer"
             className="bgButtonSecondary p-2.5 px-4"
           >
             Регистрация

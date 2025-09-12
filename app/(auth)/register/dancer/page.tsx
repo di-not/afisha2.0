@@ -90,11 +90,11 @@ export default function UserRegistrationPage() {
         </div>
 
         <button
-          onClick={handleYandexLogin}
-          className="w-full p-2 border border-gray-300 rounded-full flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+          onClick={() => signIn("yandex-dancer", { callbackUrl: "/profile" })}
+          className="w-full bgButton p-3 font-semibold gap-2"
         >
-          <Yandex />
-          <span className="text-white">Войти через Яндекс</span>
+          <span>Войти через</span>
+          <img src={"/images/yandex.svg"} alt="" className="w-6 h-6" />
         </button>
 
         <div className="text-center space-y-2">

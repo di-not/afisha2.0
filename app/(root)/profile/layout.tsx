@@ -3,6 +3,7 @@ import Header from "@/shared/components/shared/header";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import ProtectedRoute from "@/shared/components/auth/protected-roue";
 
 const USER_NAVIGATION = [
   { text: "Личная информация", link: "/profile", icon: "👤" },
@@ -26,11 +27,14 @@ const ORGANIZER_NAVIGATION = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const router = useRouter()
   const isOrganizer = session?.user?.role === "ORGANIZER";
   const navigation = isOrganizer ? ORGANIZER_NAVIGATION : USER_NAVIGATION;
-
+  console.log(session)
+  
   return (
-    <>
+    
+    <ProtectedRoute>
       <Header />
       <div className="container mx-auto px-4 py-8 mt-15">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -86,6 +90,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex-1 bg-white rounded-2xl shadow-lg p-6">{children}</div>
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

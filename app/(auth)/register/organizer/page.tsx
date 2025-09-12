@@ -80,11 +80,11 @@ export default function OrganizerRegistrationPage() {
         </div>
 
         <button
-          onClick={() => signIn("yandex", { callbackUrl: "/profile" })}
-          className="w-full p-2 border border-gray-300 rounded-full flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
+          onClick={() => signIn("yandex-organizer", { callbackUrl: "/profile" })}
+          className="w-full bgButton p-3 font-semibold gap-2"
         >
-          <Yandex />
-          <span>Войти через Яндекс</span>
+          <span>Войти через</span>
+          <img src={"/images/yandex.svg"} alt="" className="w-6 h-6" />
         </button>
 
         <div className="text-center">
@@ -96,8 +96,8 @@ export default function OrganizerRegistrationPage() {
           </p>
           <p className="mt-2 text-sm text-white">
             Обычный пользователь?{" "}
-            <Link href="/register/user" className="text-(--primary) hover:underline">
-              Регистрация участника
+            <Link href="/register/dancer" className="text-(--primary) hover:underline">
+              Регистрация танцора
             </Link>
           </p>
         </div>

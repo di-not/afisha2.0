@@ -19,7 +19,7 @@ const PasswordInput: React.FC<passwordInputProps> = ({
             <input
                 type={openSymbols ? "text" : "password"}
                 {...formStates.register(name)}
-                className={`bgInput p-2.5 pl-5 pr-14 w-full`}
+                className={`bgInput p-3 pr-14 w-full`}
                 style={{ caretColor: "#fff" }}
                 placeholder={placeholder}
             />
