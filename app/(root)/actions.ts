@@ -77,17 +77,14 @@ export async function registerUser(data: {
   try {
     // Проверяем существование пользователя с таким email И ролью
     const existingUser = await prisma.user.findFirst({
-      where: { 
-        AND: [
-          { email },
-          { role }
-        ]
+      where: {
+        AND: [{ email }, { role }],
       },
     });
 
     if (existingUser) {
       return {
-        error: `Пользователь с таким email уже существует как ${isOrganizer ? 'организатор' : 'танцор'}`,
+        error: `Пользователь с таким email уже существует как ${isOrganizer ? "организатор" : "танцор"}`,
         status: 400,
       };
     }
@@ -117,7 +114,6 @@ export async function registerUser(data: {
     };
   }
 }
-
 export async function addDanceStyleToUser(userId: string, danceStyleId: string) {
   return await prisma.userDanceStyle.create({
     data: {

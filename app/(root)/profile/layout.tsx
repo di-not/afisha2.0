@@ -4,36 +4,42 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import ProtectedRoute from "@/shared/components/auth/protected-roue";
+import { IconProfile } from "@/shared/icons/profile";
+import { IconSettings } from "@/shared/icons/settings";
+import { IconEvents } from "@/shared/icons/events";
+import { IconInterests } from "@/shared/icons/interests";
+import { IconCookie } from "@/shared/icons/cookie";
+import { IconBolt } from "@/shared/icons/bolt";
+import { IconBell } from "@/shared/icons/bell";
+import { IconGraduationCap } from "@/shared/icons/graduation-cap";
+import { IconMoney } from "@/shared/icons/money";
 
 const USER_NAVIGATION = [
-  { text: "Личная информация", link: "/profile", icon: "👤" },
-  { text: "Настройки профиля танцора", link: "/profile/dancer", icon: "💃" },
-  { text: "Настройки интересов", link: "/profile/interests", icon: "🎯" },
-  { text: "Мероприятия", link: "/profile/events", icon: "🎪" },
-  { text: "Мероприятия с регистрацией", link: "/profile/registered-events", icon: "📝" },
-  { text: "Правовая информация", link: "/profile/legal", icon: "⚖️" },
-  { text: "Поддержка и обратная связь", link: "/profile/support", icon: "🆘" },
+  { text: "Личная информация", link: "/profile", icon:<IconProfile className="size-[24px]"/> },
+  { text: "Настройки профиля танцора", link: "/profile/dancer", icon:  <IconSettings className="size-[24px]"/>},
+  { text: "Настройки интересов", link: "/profile/interests", icon: <IconInterests className="size-[24px]"/> },
+  { text: "Мероприятия", link: "/profile/events", icon: <IconEvents className="size-[24px]"/> },
+  { text: "Правовая информация", link: "/profile/legal", icon: <IconCookie className="size-[24px]"/> },
+  { text: "Поддержка и обратная связь", link: "/profile/support", icon: <IconBell className="size-[24px]"/> },
 ];
 
 const ORGANIZER_NAVIGATION = [
-  { text: "Личная информация", link: "/profile", icon: "👤" },
-  { text: "Информация об организации", link: "/profile/organization", icon: "🏢" },
-  { text: "Мои мероприятия", link: "/profile/my-events", icon: "📅" },
+  { text: "Личная информация", link: "/profile", icon:<IconProfile className="size-[24px]"/> },
+  { text: "Информация об организации", link: "/profile/organization", icon: <IconSettings className="size-[24px]"/> },
+  { text: "Мои мероприятия", link: "/profile/my-events", icon: <IconBolt className="size-[24px]"/> },
   { text: "Создать мероприятие", link: "/profile/create-event", icon: "➕" },
-  { text: "Правовая информация", link: "/profile/legal", icon: "⚖️" },
-  { text: "Поддержка и обратная связь", link: "/profile/support", icon: "🆘" },
+  { text: "Правовая информация", link: "/profile/legal", icon: <IconCookie className="size-[24px]"/> },
+  { text: "Поддержка и обратная связь", link: "/profile/support", icon: <IconBell className="size-[24px]"/> },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const router = useRouter()
+  const router = useRouter();
   const isOrganizer = session?.user?.role === "ORGANIZER";
   const navigation = isOrganizer ? ORGANIZER_NAVIGATION : USER_NAVIGATION;
-  console.log(session)
-  
+
   return (
-    
     <ProtectedRoute>
       <Header />
       <div className="container mx-auto px-4 py-8 mt-15">
@@ -51,7 +57,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   key={item.link}
                   href={item.link}
                   className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                    pathname === item.link ? "bg-blue-100 text-blue-600 font-medium" : "text-gray-700 hover:bg-gray-100"
+                    pathname === item.link ? "bg-[var(--primary-light)] text-[var(--primary)] font-medium" : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   <span className="text-lg">{item.icon}</span>
@@ -65,7 +71,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 href="/profile/ur-info"
                 className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <span className="text-lg">📋</span>
+                <IconGraduationCap className="size-[24px]"/>
                 <span className="text-sm">Юр. информация</span>
               </Link>
 
@@ -73,7 +79,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 href="/profile/requisites"
                 className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <span className="text-lg">💳</span>
+                <IconMoney className="size-[24px]"/>
                 <span className="text-sm">Реквизиты</span>
               </Link>
 

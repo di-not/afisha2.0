@@ -64,6 +64,53 @@ async function createRealEvents() {
   await prisma.user.deleteMany();
 
   console.log("🗑️ База данных очищена");
+  console.log("💃 Создание стилей танцев...");
+
+  const danceStyles = await Promise.all([
+    prisma.danceStyle.create({
+      data: {
+        id: generateObjectId(),
+        name: "Танго",
+        description: "Аргентинское танго",
+      },
+    }),
+    prisma.danceStyle.create({
+      data: {
+        id: generateObjectId(),
+        name: "Сальса",
+        description: "Латиноамериканский танец",
+      },
+    }),
+    prisma.danceStyle.create({
+      data: {
+        id: generateObjectId(),
+        name: "Бачата",
+        description: "Доминиканский танец",
+      },
+    }),
+    prisma.danceStyle.create({
+      data: {
+        id: generateObjectId(),
+        name: "Хип-хоп",
+        description: "Уличный танец",
+      },
+    }),
+    prisma.danceStyle.create({
+      data: {
+        id: generateObjectId(),
+        name: "Контемпорари",
+        description: "Современный танец",
+      },
+    }),
+    prisma.danceStyle.create({
+      data: {
+        id: generateObjectId(),
+        name: "Бальные танцы",
+        description: "Стандартные и латиноамериканские",
+      },
+    }),
+  ]);
+  console.log("✅ Стили танцев созданы!");
   console.log("🎪 Создание реальных мероприятий...");
 
   // Создаем необходимые теги
@@ -482,7 +529,9 @@ async function createRealEvents() {
       eventId: samaraEvent.id,
     },
   });
+  
 
+  console.log("✅ Стили танцев созданы!");
   console.log("✅ Реальные мероприятия созданы!");
 }
 

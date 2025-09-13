@@ -1,8 +1,9 @@
+// app/api/auth/[...nextauth]/route.ts
 import NextAuth, { AuthOptions } from "next-auth";
 import YandexProvider from "next-auth/providers/yandex";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare, hashSync } from "bcrypt";
-import { User, UserRole } from "@prisma/client";
+import { UserRole, User as PrismaUser } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 import { RequestInternal } from "next-auth";
 
@@ -25,10 +26,12 @@ interface YandexProfile {
   is_avatar_empty?: boolean;
 }
 
-// Вспомогательная функция для преобразования
-const normalizeUser = (user: User): User => ({
+// Вспомогательная функция для нормализации пользователя
+const normalizeUser = (user: PrismaUser) => ({
   id: user.id,
   email: user.email,
+  name: user.fullName,
+  fullName: user.fullName,
   role: user.role,
   isOrganizer: user.isOrganizer || false,
   phone: user.phone || null,
@@ -37,15 +40,12 @@ const normalizeUser = (user: User): User => ({
   avatar: user.avatar || null,
   organizationName: user.organizationName || null,
   organizationCity: user.organizationCity || null,
-  fullName: user.fullName,
-  password: "",
-  mainDanceStyleId: user.mainDanceStyleId,
-  danceSchoolId: user.danceSchoolId,
-  organizationStyleId: user.organizationCity,
-  provider: user.provider,
-  providerId: user.provider,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
+  provider: user.provider || null,
+  providerId: user.providerId || null,
+  mainDanceStyle: null,
+  additionalStyles: [],
+  danceSchool: null,
+  organizationStyle: null,
 });
 
 export const authOptions: AuthOptions = {
@@ -101,7 +101,7 @@ export const authOptions: AuthOptions = {
       async authorize(
         credentials: Record<"email" | "password", string> | undefined,
         req: Pick<RequestInternal, "body" | "query" | "headers" | "method">
-      ): Promise<User | null> {
+      ) {
         if (!credentials) return null;
 
         try {
@@ -122,27 +122,7 @@ export const authOptions: AuthOptions = {
             throw new Error("Неверный пароль");
           }
 
-          return normalizeUser({
-            id: String(findUser.id),
-            email: findUser.email,
-            fullName: findUser.fullName,
-            role: findUser.role,
-            isOrganizer: findUser.isOrganizer,
-            phone: findUser.phone,
-            city: findUser.city,
-            about: findUser.about,
-            avatar: findUser.avatar,
-            password: "",
-            mainDanceStyleId: findUser.mainDanceStyleId,
-            danceSchoolId: findUser.danceSchoolId,
-            organizationName: findUser.organizationName,
-            organizationCity: findUser.organizationCity,
-            organizationStyleId: findUser.organizationStyleId,
-            provider: findUser.provider,
-            providerId: findUser.providerId,
-            createdAt: findUser.createdAt,
-            updatedAt: findUser.updatedAt,
-          });
+          return normalizeUser(findUser);
         } catch (error) {
           console.error("Dancer authorize error:", error);
           throw error;
@@ -160,7 +140,7 @@ export const authOptions: AuthOptions = {
       async authorize(
         credentials: Record<"email" | "password", string> | undefined,
         req: Pick<RequestInternal, "body" | "query" | "headers" | "method">
-      ): Promise<User | null> {
+      ) {
         if (!credentials) return null;
 
         try {
@@ -181,27 +161,7 @@ export const authOptions: AuthOptions = {
             throw new Error("Неверный пароль");
           }
 
-          return normalizeUser({
-            id: String(findUser.id),
-            email: findUser.email,
-            fullName: findUser.fullName,
-            role: findUser.role,
-            isOrganizer: findUser.isOrganizer,
-            phone: findUser.phone,
-            city: findUser.city,
-            about: findUser.about,
-            avatar: findUser.avatar,
-            organizationName: findUser.organizationName,
-            organizationCity: findUser.organizationCity,
-            password: "",
-            mainDanceStyleId: findUser.mainDanceStyleId,
-            danceSchoolId: findUser.danceSchoolId,
-            organizationStyleId: findUser.organizationStyleId,
-            provider: findUser.provider,
-            providerId: findUser.providerId,
-            createdAt: findUser.createdAt,
-            updatedAt: findUser.updatedAt,
-          });
+          return normalizeUser(findUser);
         } catch (error) {
           console.error("Organizer authorize error:", error);
           throw error;
@@ -241,7 +201,7 @@ export const authOptions: AuthOptions = {
               data: {
                 provider: account.provider,
                 providerId: account.providerAccountId,
-                fullName: (user as User).fullName || user.name || findUser.fullName,
+                fullName: user.name || findUser.fullName,
               },
             });
             return true;
@@ -250,7 +210,7 @@ export const authOptions: AuthOptions = {
           // Создаем нового пользователя с указанной ролью
           await prisma.user.create({
             data: {
-              fullName: (user as User).fullName || user.name || "User",
+              fullName: user.name || "User",
               email: user.email!,
               role: role,
               password: hashSync(Math.random().toString(36) + Date.now().toString(), 10),
@@ -276,17 +236,20 @@ export const authOptions: AuthOptions = {
       if (user) {
         return {
           ...token,
-          id: (user as any).id,
+          id: user.id,
           email: user.email,
-          fullName: (user as any).fullName || user.name,
-          role: (user as any).role,
-          isOrganizer: (user as any).isOrganizer || false,
-          phone: (user as any).phone || undefined,
-          city: (user as any).city || undefined,
-          about: (user as any).about || undefined,
-          avatar: (user as any).avatar || undefined,
-          organizationName: (user as any).organizationName || undefined,
-          organizationCity: (user as any).organizationCity || undefined,
+          name: user.name,
+          fullName: user.fullName,
+          role: user.role,
+          isOrganizer: user.isOrganizer || false,
+          phone: user.phone || undefined,
+          city: user.city || undefined,
+          about: user.about || undefined,
+          avatar: user.avatar || undefined,
+          organizationName: user.organizationName || undefined,
+          organizationCity: user.organizationCity || undefined,
+          provider: user.provider || undefined,
+          providerId: user.providerId || undefined,
         };
       }
 
@@ -324,6 +287,7 @@ export const authOptions: AuthOptions = {
           ...token,
           id: String(findUser.id),
           email: findUser.email,
+          name: findUser.fullName,
           fullName: findUser.fullName,
           role: findUser.role,
           isOrganizer: findUser.isOrganizer,
@@ -333,8 +297,10 @@ export const authOptions: AuthOptions = {
           avatar: findUser.avatar || undefined,
           organizationName: findUser.organizationName || undefined,
           organizationCity: findUser.organizationCity || undefined,
+          provider: findUser.provider || undefined,
+          providerId: findUser.providerId || undefined,
           mainDanceStyle: findUser.mainDanceStyle || undefined,
-          additionalStyles: findUser.additionalStyles.map((as) => as.danceStyle),
+          additionalStyles: findUser.additionalStyles.map((as: any) => as.danceStyle),
           danceSchool: findUser.danceSchool || undefined,
           organizationStyle: findUser.organizationStyle || undefined,
         };
@@ -357,7 +323,7 @@ export const authOptions: AuthOptions = {
           ...session.user,
           id: token.id as string,
           email: token.email as string,
-          name: token.fullName as string,
+          name: token.name as string,
           fullName: token.fullName as string,
           role: token.role as UserRole,
           phone: token.phone as string | undefined,
@@ -367,6 +333,8 @@ export const authOptions: AuthOptions = {
           isOrganizer: token.isOrganizer as boolean | undefined,
           organizationName: token.organizationName as string | undefined,
           organizationCity: token.organizationCity as string | undefined,
+          provider: token.provider as string | undefined,
+          providerId: token.providerId as string | undefined,
           mainDanceStyle: token.mainDanceStyle as any,
           additionalStyles: token.additionalStyles as any,
           danceSchool: token.danceSchool as any,

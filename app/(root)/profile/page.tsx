@@ -2,8 +2,10 @@
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { IconCamera } from "@/shared/icons/camera";
 
 interface ProfileFormData {
+  fullName: string;
   phone: string;
   email: string;
   city: string;
@@ -17,23 +19,29 @@ export default function ProfilePage() {
     session?.user?.avatar || "https://i.pinimg.com/736x/82/40/7e/82407e8e0aaa33e0c7ec1c450c0d28a1.jpg"
   );
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  
+  const isYandexUser = session?.user && 'provider' in session.user 
+    ? (session.user as any).provider?.startsWith("yandex")
+    : false;
 
   const form = useForm<ProfileFormData>({
     defaultValues: {
-      phone: session?.user?.phone || "",
-      email: session?.user?.email || "",
-      city: session?.user?.city || "",
+      fullName: "",
+      phone: "",
+      email: "",
+      city: "",
     },
   });
 
   // Обновляем форму при изменении сессии
   useEffect(() => {
     if (session?.user) {
-      form.reset({
-        phone: session.user.phone || "",
-        email: session.user.email || "",
-        city: session.user.city || "",
-      });
+      // Принудительно устанавливаем значения для каждого поля
+      form.setValue("fullName", session.user.fullName || "");
+      form.setValue("phone", session.user.phone || "");
+      form.setValue("email", session.user.email || "");
+      form.setValue("city", session.user.city || "");
+      
       setAvatarPreview(
         session.user.avatar || "https://i.pinimg.com/736x/82/40/7e/82407e8e0aaa33e0c7ec1c450c0d28a1.jpg"
       );
@@ -98,7 +106,17 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        await update();
+        const result = await response.json();
+        
+        // Обновляем сессию с данными из ответа сервера
+        await update({
+          ...session,
+          user: {
+            ...session?.user,
+            ...result.user,
+          }
+        });
+        
         setAvatar(null);
         alert("Данные успешно обновлены!");
       } else {
@@ -147,8 +165,14 @@ export default function ProfilePage() {
     }
   };
 
+  // Временно для отладки
+  console.log('Form fullName value:', form.watch("fullName"));
+  console.log('Session fullName:', session?.user?.fullName);
+
   return (
     <div className="max-w-4xl mx-auto">
+      
+
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Личная информация</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -159,11 +183,11 @@ export default function ProfilePage() {
               <img
                 src={avatarPreview}
                 alt="Аватар"
-                className="size-32! rounded-full object-cover border-4 border-white shadow-lg"
+                className="size-32! rounded-full object-cover shadow-lg"
               />
-              <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors cursor-pointer">
+              <label className="absolute bottom-0 right-10 bgButton p-2 rounded-full transition-colors cursor-pointer">
                 <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                📷
+                <IconCamera className="size-[24px]"/>
               </label>
               {avatar && (
                 <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
@@ -196,28 +220,54 @@ export default function ProfilePage() {
         <div>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">ФИО</label>
+              <input
+                value={form.watch("fullName")}
+                onChange={(e) => form.setValue("fullName", e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Иванов Иван Иванович"
+              />
+              {form.formState.errors.fullName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.fullName.message}
+                </p>
+              )}
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Телефон</label>
               <input
-                {...form.register("phone")}
+                value={form.watch("phone")}
+                onChange={(e) => form.setValue("phone", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="+7 (999) 999-99-99"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email {isYandexUser && "(привязан к Яндекс)"}
+              </label>
               <input
-                {...form.register("email")}
+                value={form.watch("email")}
+                onChange={(e) => !isYandexUser && form.setValue("email", e.target.value)}
                 type="email"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="email@example.com"
+                disabled={isYandexUser}
               />
+              {isYandexUser && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Email привязан к аккаунту Яндекс и не может быть изменен
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Город</label>
               <input
-                {...form.register("city")}
+                value={form.watch("city")}
+                onChange={(e) => form.setValue("city", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Москва"
               />

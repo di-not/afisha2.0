@@ -8,7 +8,6 @@ import Link from "next/link";
 import { PasswordInput } from "@/shared/components/ui/passwordInput";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import Yandex from "@/public/images/yandex.svg";
 import { Input } from "@/shared/components/ui/input";
 
 const schema = z.object({
@@ -25,6 +24,12 @@ export default function UserRegistrationPage() {
 
   const form = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      phone: "",
+    }
   });
 
   const onSubmit = async (data: any) => {
@@ -37,7 +42,22 @@ export default function UserRegistrationPage() {
       if (res.error) {
         setError(res.error);
       } else if (res.success) {
-        router.push("/login?message=registration_success");
+        // Автоматически логиним пользователя после регистрации
+        const loginResult = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+          callbackUrl: "/profile"
+        });
+
+        if (loginResult?.ok) {
+          // Принудительно обновляем страницу чтобы подхватилась сессия
+          router.push("/profile");
+          router.refresh();
+        } else {
+          // Если автоматический вход не удался, перенаправляем на страницу входа
+          router.push("/login?message=registration_success");
+        }
       }
     } catch (error) {
       setError("Ошибка регистрации");
@@ -48,9 +68,8 @@ export default function UserRegistrationPage() {
   };
 
   const handleYandexLogin = async () => {
-    await signIn("yandex", { 
+    await signIn("yandex-dancer", { 
       callbackUrl: "/profile",
-      state: "dancer"
     });
   };
 
@@ -69,10 +88,30 @@ export default function UserRegistrationPage() {
         )}
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-          <Input name="fullName" formStates={form} placeholder="ФИО" className="w-full p-3" />
-          <Input name="email" type="email" formStates={form} placeholder="Email" className="w-full p-3" />
-          <PasswordInput formStates={form} name="password" placeholder="Пароль" />
-          <Input name="phone" formStates={form} placeholder="Телефон (необязательно)" className="w-full p-3" />
+          <Input 
+            name="fullName" 
+            formStates={form} 
+            placeholder="ФИО" 
+            className="w-full p-3" 
+          />
+          <Input 
+            name="email" 
+            type="email" 
+            formStates={form} 
+            placeholder="Email" 
+            className="w-full p-3" 
+          />
+          <PasswordInput 
+            formStates={form} 
+            name="password" 
+            placeholder="Пароль" 
+          />
+          <Input 
+            name="phone" 
+            formStates={form} 
+            placeholder="Телефон (необязательно)" 
+            className="w-full p-3" 
+          />
 
           <button
             type="submit"
@@ -90,11 +129,11 @@ export default function UserRegistrationPage() {
         </div>
 
         <button
-          onClick={() => signIn("yandex-dancer", { callbackUrl: "/profile" })}
-          className="w-full bgButton p-3 font-semibold gap-2"
+          onClick={handleYandexLogin}
+          className="w-full bgButton p-3 font-semibold gap-2 flex items-center justify-center"
         >
           <span>Войти через</span>
-          <img src={"/images/yandex.svg"} alt="" className="w-6 h-6" />
+          <img src={"/images/yandex.svg"} alt="Yandex" className="w-6 h-6 ml-2" />
         </button>
 
         <div className="text-center space-y-2">

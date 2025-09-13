@@ -1,12 +1,7 @@
 export default function EventsPage() {
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Мероприятия</h1>
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">🎪</div>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">Скоро будет доступно</h2>
-        <p className="text-gray-500">Раздел в разработке</p>
-      </div>
+    <div className="flex justify-center items-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
     </div>
   );
 }

@@ -8,7 +8,6 @@ import Link from "next/link";
 import { PasswordInput } from "@/shared/components/ui/passwordInput";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import Yandex from "@/public/images/yandex.svg";
 import { Input } from "@/shared/components/ui/input";
 
 const schema = z.object({
@@ -26,6 +25,13 @@ export default function OrganizerRegistrationPage() {
 
   const form = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      phone: "",
+      organizationCity: "",
+    }
   });
 
   const onSubmit = async (data: any) => {
@@ -38,13 +44,35 @@ export default function OrganizerRegistrationPage() {
       if (res.error) {
         setError(res.error);
       } else if (res.success) {
-        router.push("/login?message=registration_success");
+        // Автоматически логиним организатора после регистрации
+        const loginResult = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+          callbackUrl: "/profile"
+        });
+
+        if (loginResult?.ok) {
+          // Принудительно обновляем страницу чтобы подхватилась сессия
+          router.push("/profile");
+          router.refresh();
+        } else {
+          // Если автоматический вход не удался, перенаправляем на страницу входа
+          router.push("/login?message=registration_success");
+        }
       }
     } catch (error) {
       setError("Ошибка регистрации");
+      console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleYandexLogin = async () => {
+    await signIn("yandex-organizer", { 
+      callbackUrl: "/profile",
+    });
   };
 
   return (
@@ -58,12 +86,38 @@ export default function OrganizerRegistrationPage() {
         {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">{error}</div>}
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-          <Input name="fullName" formStates={form} placeholder="ФИО" className="w-full p-3 " />
+          <Input 
+            name="fullName" 
+            formStates={form} 
+            placeholder="ФИО" 
+            className="w-full p-3" 
+          />
 
-          <Input formStates={form} name="phone" placeholder="Телефон" className=" w-full p-3 " />
-          <Input formStates={form} name="organizationCity" placeholder="Город организации" className=" w-full p-3 " />
-          <Input name="email" type="email" placeholder="Email" className=" w-full p-3" formStates={form} />
-          <PasswordInput formStates={form} name="password" placeholder="Пароль" />
+          <Input 
+            formStates={form} 
+            name="phone" 
+            placeholder="Телефон" 
+            className="w-full p-3" 
+          />
+          <Input 
+            formStates={form} 
+            name="organizationCity" 
+            placeholder="Город организации" 
+            className="w-full p-3" 
+          />
+          <Input 
+            name="email" 
+            type="email" 
+            placeholder="Email" 
+            className="w-full p-3" 
+            formStates={form} 
+          />
+          <PasswordInput 
+            formStates={form} 
+            name="password" 
+            placeholder="Пароль" 
+          />
+          
           <button
             type="submit"
             disabled={loading}
@@ -80,11 +134,11 @@ export default function OrganizerRegistrationPage() {
         </div>
 
         <button
-          onClick={() => signIn("yandex-organizer", { callbackUrl: "/profile" })}
-          className="w-full bgButton p-3 font-semibold gap-2"
+          onClick={handleYandexLogin}
+          className="w-full bgButton p-3 font-semibold gap-2 flex items-center justify-center"
         >
           <span>Войти через</span>
-          <img src={"/images/yandex.svg"} alt="" className="w-6 h-6" />
+          <img src={"/images/yandex.svg"} alt="Yandex" className="w-6 h-6 ml-2" />
         </button>
 
         <div className="text-center">

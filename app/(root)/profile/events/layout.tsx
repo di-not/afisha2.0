@@ -2,27 +2,28 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useEffect } from "react";
 
 const TABS = [
   {
     text: "Понравившиеся",
     link: "/profile/events/favorite",
-    key: "favorite"
+    key: "favorite",
   },
   {
     text: "Закладки",
     link: "/profile/events/bookmarks",
-    key: "bookmarks"
+    key: "bookmarks",
   },
   {
     text: "Я собираюсь",
     link: "/profile/events/gonnago",
-    key: "gonnago"
+    key: "gonnago",
   },
   {
     text: "Я пойду",
     link: "/profile/events/willgo",
-    key: "willgo"
+    key: "willgo",
   },
 ];
 
@@ -33,9 +34,13 @@ export default function Layout({
 }>) {
   const router = useRouter();
   const pathname = usePathname();
-
+  useEffect(() => {
+    if (pathname === "/profile/events") {
+      router.push("/profile/events/favorite");
+    }
+  }, [pathname, router]);
   const getActiveTab = () => {
-    return TABS.find(tab => pathname === tab.link)?.key || "favorite";
+    return TABS.find((tab) => pathname === tab.link)?.key || "favorite";
   };
 
   const activeTab = getActiveTab();
@@ -48,9 +53,7 @@ export default function Layout({
             <button
               key={tab.key}
               className={`rounded-3xl p-3 w-full text-center text-sm font-medium transition-colors ${
-                activeTab === tab.key 
-                  ? 'bg-blue-500 text-white shadow-md' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                activeTab === tab.key ? "bgButton" : "bgButtonSecondary shadow-none!"
               }`}
               onClick={() => {
                 router.push(tab.link);
@@ -60,19 +63,9 @@ export default function Layout({
             </button>
           ))}
         </div>
-        
-        <Link 
-          href="/event/create"
-          className="bg-blue-500 text-white text-2xl rounded-full size-12 flex items-center justify-center hover:bg-blue-600 transition-colors shadow-md"
-          title="Создать мероприятие"
-        >
-          +
-        </Link>
       </div>
-      
-      <div className="min-h-[400px]">
-        {children}
-      </div>
+
+      <div className="min-h-[400px]">{children}</div>
     </div>
   );
 }
