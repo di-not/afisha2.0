@@ -39,7 +39,25 @@ export async function PUT(request: Request) {
       });
     }
 
-    return NextResponse.json({ success: true });
+    // Получаем обновленного пользователя с полными данными
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        mainDanceStyle: true,
+        additionalStyles: {
+          include: {
+            danceStyle: true
+          }
+        },
+        danceSchool: true,
+        organizationStyle: true,
+      }
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      user: updatedUser 
+    });
   } catch (error) {
     console.error('Error updating dancer profile:', error);
     return NextResponse.json(

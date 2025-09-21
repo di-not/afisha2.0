@@ -73,7 +73,7 @@ export default function LoginSelectionPage() {
         <div className="text-center space-y-2">
           <p className="text-sm text-white ">
             Нет аккаунта?
-            <Link href="/register/user" className="pl-1 text-[var(--primary)] hover:underline">
+            <Link href="/register/dancer" className="pl-1 text-[var(--primary)] hover:underline">
               Регистрация участника
             </Link>
           </p>

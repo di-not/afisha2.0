@@ -52,29 +52,31 @@ export async function PUT(request: Request) {
       }
     }
 
-    // Обновляем данные пользователя
     const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        fullName: data.fullName,
-        phone: data.phone || null,
-        email: data.email, // Будет undefined для Яндекс пользователей
-        city: data.city || null,
-        avatar: data.avatar || undefined,
-      },
+  where: { id: session.user.id },
+  data: {
+    fullName: data.fullName,
+    phone: data.phone || null,
+    email: data.email,
+    city: data.city || null,
+    avatar: data.avatar || undefined,
+  },
+  include: {
+    mainDanceStyle: true,
+    additionalStyles: {
       include: {
-        mainDanceStyle: true,
-        additionalStyles: {
-          include: {
-            danceStyle: true
-          }
-        },
-        danceSchool: true,
-        organizationStyle: true,
+        danceStyle: true
       }
-    });
+    },
+    danceSchool: true,
+    organizationStyle: true,
+  }
+});
 
-    return NextResponse.json({ success: true, user: updatedUser });
+return NextResponse.json({ 
+  success: true, 
+  user: updatedUser 
+});
   } catch (error) {
     console.error('Error updating profile:', error);
     return NextResponse.json(

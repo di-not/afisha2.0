@@ -39,13 +39,26 @@ export async function POST(request: Request) {
     // URL для доступа к файлу
     const avatarUrl = `/uploads/avatars/${fileName}`;
 
-    // Обновляем аватар пользователя в базе данных
-    await prisma.user.update({
+    // Обновляем аватар пользователя в базе данных и возвращаем полные данные
+    const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: { avatar: avatarUrl },
+      include: {
+        mainDanceStyle: true,
+        additionalStyles: {
+          include: {
+            danceStyle: true
+          }
+        },
+        danceSchool: true,
+        organizationStyle: true,
+      }
     });
 
-    return NextResponse.json({ avatarUrl });
+    return NextResponse.json({ 
+      avatarUrl, 
+      user: updatedUser 
+    });
   } catch (error) {
     console.error('Error uploading avatar:', error);
     return NextResponse.json(

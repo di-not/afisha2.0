@@ -15,21 +15,21 @@ import { IconGraduationCap } from "@/shared/icons/graduation-cap";
 import { IconMoney } from "@/shared/icons/money";
 
 const USER_NAVIGATION = [
-  { text: "Личная информация", link: "/profile", icon:<IconProfile className="size-[24px]"/> },
-  { text: "Настройки профиля танцора", link: "/profile/dancer", icon:  <IconSettings className="size-[24px]"/>},
-  { text: "Настройки интересов", link: "/profile/interests", icon: <IconInterests className="size-[24px]"/> },
-  { text: "Мероприятия", link: "/profile/events", icon: <IconEvents className="size-[24px]"/> },
-  { text: "Правовая информация", link: "/profile/legal", icon: <IconCookie className="size-[24px]"/> },
-  { text: "Поддержка и обратная связь", link: "/profile/support", icon: <IconBell className="size-[24px]"/> },
+  { text: "Личная информация", link: "/profile", icon: <IconProfile className="size-[24px]" /> ,implemented: true},
+  { text: "Настройки профиля танцора", link: "/profile/dancer", icon: <IconSettings className="size-[24px]" /> ,implemented: true},
+  { text: "Настройки интересов", link: "/profile/interests", icon: <IconInterests className="size-[24px]" /> ,implemented: false},
+  { text: "Мероприятия", link: "/profile/events", icon: <IconEvents className="size-[24px]" /> ,implemented: true},
+  { text: "Правовая информация", link: "/profile/legal", icon: <IconCookie className="size-[24px]" />,implemented: false },
+  { text: "Поддержка и обратная связь", link: "/profile/support", icon: <IconBell className="size-[24px]" /> ,implemented: false},
 ];
 
 const ORGANIZER_NAVIGATION = [
-  { text: "Личная информация", link: "/profile", icon:<IconProfile className="size-[24px]"/> },
-  { text: "Информация об организации", link: "/profile/organization", icon: <IconSettings className="size-[24px]"/> },
-  { text: "Мои мероприятия", link: "/profile/my-events", icon: <IconBolt className="size-[24px]"/> },
-  { text: "Создать мероприятие", link: "/profile/create-event", icon: "➕" },
-  { text: "Правовая информация", link: "/profile/legal", icon: <IconCookie className="size-[24px]"/> },
-  { text: "Поддержка и обратная связь", link: "/profile/support", icon: <IconBell className="size-[24px]"/> },
+  { text: "Личная информация", link: "/profile", icon: <IconProfile className="size-[24px]" />,implemented: true },
+  { text: "Информация об организации", link: "/profile/organization", icon: <IconSettings className="size-[24px]" /> ,implemented: true},
+  { text: "Мои мероприятия", link: "/profile/my-events", icon: <IconBolt className="size-[24px]" />,implemented: false },
+  { text: "Создать мероприятие", link: "/profile/create-event", icon: "➕",implemented: false },
+  { text: "Правовая информация", link: "/profile/legal", icon: <IconCookie className="size-[24px]" /> ,implemented: false},
+  { text: "Поддержка и обратная связь", link: "/profile/support", icon: <IconBell className="size-[24px]" /> ,implemented: false},
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -39,6 +39,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const isOrganizer = session?.user?.role === "ORGANIZER";
   const navigation = isOrganizer ? ORGANIZER_NAVIGATION : USER_NAVIGATION;
 
+  const handleNavigation = (item: any) => {
+    router.push(item.link);
+  };
   return (
     <ProtectedRoute>
       <Header />
@@ -53,16 +56,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             <nav className="space-y-2">
               {navigation.map((item) => (
-                <Link
+                <button
                   key={item.link}
-                  href={item.link}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                    pathname === item.link ? "bg-[var(--primary-light)] text-[var(--primary)] font-medium" : "text-gray-700 hover:bg-gray-100"
+                  onClick={() => handleNavigation(item)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors relative ${
+                    pathname === item.link 
+                      ? "bg-[var(--primary-light)] text-[var(--primary)] font-medium" 
+                      : item.implemented
+                        ? "text-gray-700 hover:bg-gray-100 "
+                        : "text-gray-400 cursor-not-allowed opacity-60 bg-gray-200"
                   }`}
+                  disabled={!item.implemented}
                 >
                   <span className="text-lg">{item.icon}</span>
-                  <span className="text-sm">{item.text}</span>
-                </Link>
+                  <span className="text-sm text-left">{item.text}</span>
+                  {!item.implemented && (
+                    <span className="text-[10px]  ml-auto absolute top-1 right-2 text-[var(--primary)]">скоро</span>
+                  )}
+                </button>
               ))}
             </nav>
 
@@ -71,7 +82,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 href="/profile/ur-info"
                 className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <IconGraduationCap className="size-[24px]"/>
+                <IconGraduationCap className="size-[24px]" />
                 <span className="text-sm">Юр. информация</span>
               </Link>
 
@@ -79,9 +90,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 href="/profile/requisites"
                 className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <IconMoney className="size-[24px]"/>
+                <IconMoney className="size-[24px]" />
                 <span className="text-sm">Реквизиты</span>
               </Link>
+              
 
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}

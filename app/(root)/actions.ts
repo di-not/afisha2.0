@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs/promises";
 import { randomUUID } from "crypto";
 import { hashSync } from "bcrypt";
+import { getUniqueBDSId } from "@/shared/lib/bds-id";
 
 export type ProductInput = {
   title: string;
@@ -88,13 +89,14 @@ export async function registerUser(data: {
         status: 400,
       };
     }
-
+    const bdsId = await getUniqueBDSId();
     const newUser = await prisma.user.create({
       data: {
         email,
         fullName: fullName || `User#${Math.random().toString(36).substring(2, 9)}`,
         password: hashSync(password, 10),
         phone,
+        bdsId,
         role: role,
         isOrganizer: isOrganizer || false,
         organizationName: isOrganizer ? organizationName : undefined,

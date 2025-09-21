@@ -1,4 +1,3 @@
-// app/api/auth/[...nextauth]/route.ts
 import NextAuth, { AuthOptions } from "next-auth";
 import YandexProvider from "next-auth/providers/yandex";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -6,6 +5,7 @@ import { compare, hashSync } from "bcrypt";
 import { UserRole, User as PrismaUser } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 import { RequestInternal } from "next-auth";
+import { getUniqueBDSId } from "@/shared/lib/bds-id";
 
 // Интерфейс для профиля Яндекс
 interface YandexProfile {
@@ -33,15 +33,16 @@ const normalizeUser = (user: PrismaUser) => ({
   name: user.fullName,
   fullName: user.fullName,
   role: user.role,
+  bdsId: user.bdsId || undefined, // Делаем bdsId optional
   isOrganizer: user.isOrganizer || false,
-  phone: user.phone || null,
-  city: user.city || null,
-  about: user.about || null,
-  avatar: user.avatar || null,
-  organizationName: user.organizationName || null,
-  organizationCity: user.organizationCity || null,
-  provider: user.provider || null,
-  providerId: user.providerId || null,
+  phone: user.phone || undefined,
+  city: user.city || undefined,
+  about: user.about || undefined,
+  avatar: user.avatar || undefined,
+  organizationName: user.organizationName || undefined,
+  organizationCity: user.organizationCity || undefined,
+  provider: user.provider || undefined,
+  providerId: user.providerId || undefined,
   mainDanceStyle: null,
   additionalStyles: [],
   danceSchool: null,
@@ -67,6 +68,7 @@ export const authOptions: AuthOptions = {
           name: profile.display_name || profile.real_name || `User${profile.id}`,
           fullName: profile.display_name || profile.real_name || `User${profile.id}`,
           role: "USER",
+          bdsId: undefined,
         };
       },
     }),
@@ -87,6 +89,7 @@ export const authOptions: AuthOptions = {
           name: profile.display_name || profile.real_name || `User${profile.id}`,
           fullName: profile.display_name || profile.real_name || `User${profile.id}`,
           role: "ORGANIZER",
+          bdsId: undefined,
         };
       },
     }),
@@ -207,6 +210,9 @@ export const authOptions: AuthOptions = {
             return true;
           }
 
+          // Генерируем уникальный BDS ID для нового пользователя
+          const bdsId = await getUniqueBDSId();
+
           // Создаем нового пользователя с указанной ролью
           await prisma.user.create({
             data: {
@@ -217,6 +223,7 @@ export const authOptions: AuthOptions = {
               provider: account.provider,
               providerId: account.providerAccountId,
               isOrganizer: role === "ORGANIZER",
+              bdsId: bdsId, // Добавляем BDS ID
             },
           });
 
@@ -236,6 +243,7 @@ export const authOptions: AuthOptions = {
       if (user) {
         return {
           ...token,
+          bdsId: user.bdsId, // Может быть undefined для новых OAuth пользователей
           id: user.id,
           email: user.email,
           name: user.name,
@@ -289,6 +297,7 @@ export const authOptions: AuthOptions = {
           email: findUser.email,
           name: findUser.fullName,
           fullName: findUser.fullName,
+          bdsId: findUser.bdsId || undefined, // Добавляем bdsId
           role: findUser.role,
           isOrganizer: findUser.isOrganizer,
           phone: findUser.phone || undefined,
@@ -311,37 +320,38 @@ export const authOptions: AuthOptions = {
     },
 
     async session({ session, token }) {
-      if (token.invalid || token.error) {
-        // Возвращаем сессию без user если токен невалиден
-        const { user, ...rest } = session;
-        return rest;
-      }
+  if (token.invalid || token.error) {
+    // Возвращаем сессию без user если токен невалиден
+    const { user, ...rest } = session;
+    return rest;
+  }
 
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          id: token.id as string,
-          email: token.email as string,
-          name: token.name as string,
-          fullName: token.fullName as string,
-          role: token.role as UserRole,
-          phone: token.phone as string | undefined,
-          city: token.city as string | undefined,
-          about: token.about as string | undefined,
-          avatar: token.avatar as string | undefined,
-          isOrganizer: token.isOrganizer as boolean | undefined,
-          organizationName: token.organizationName as string | undefined,
-          organizationCity: token.organizationCity as string | undefined,
-          provider: token.provider as string | undefined,
-          providerId: token.providerId as string | undefined,
-          mainDanceStyle: token.mainDanceStyle as any,
-          additionalStyles: token.additionalStyles as any,
-          danceSchool: token.danceSchool as any,
-          organizationStyle: token.organizationStyle as any,
-        },
-      };
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      id: token.id as string,
+      email: token.email as string,
+      name: token.name as string,
+      fullName: token.fullName as string,
+      bdsId: token.bdsId as string | undefined, // Делаем bdsId optional
+      role: token.role as UserRole,
+      phone: token.phone as string | undefined,
+      city: token.city as string | undefined,
+      about: token.about as string | undefined,
+      avatar: token.avatar as string | undefined,
+      isOrganizer: token.isOrganizer as boolean | undefined,
+      organizationName: token.organizationName as string | undefined,
+      organizationCity: token.organizationCity as string | undefined,
+      provider: token.provider as string | undefined,
+      providerId: token.providerId as string | undefined,
+      mainDanceStyle: token.mainDanceStyle as any,
+      additionalStyles: token.additionalStyles as any,
+      danceSchool: token.danceSchool as any,
+      organizationStyle: token.organizationStyle as any,
     },
+  };
+},
 
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
