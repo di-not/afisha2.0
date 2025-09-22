@@ -190,20 +190,37 @@ async function createRealEvents() {
       name: "Струковский сад в Самаре",
       url: "https://yandex.ru/maps/org/strukovskiy_sad/1071066941",
     }),
+    findOrCreatePlace({
+      name: "Танцевальный центр Ритм",
+      url: "https://yandex.ru/maps/org/ritm/123456789",
+    }),
+    findOrCreatePlace({
+      name: "Культурный центр Искра",
+      url: "https://yandex.ru/maps/org/iskra/987654321",
+    }),
   ]);
 
-  // Находим организатора
-  const organizer = await prisma.user.findFirst({
-    where: { email: "organizer@example.com" },
+  // Создаем тестового организатора
+  const organizer = await prisma.user.create({
+    data: {
+      id: generateObjectId(),
+      fullName: "Организатор Фестивалей",
+      email: "organizer@example.com",
+      password: "$2b$10$examplepasswordhash",
+      role: "ORGANIZER",
+      isOrganizer: true,
+      organizationName: "Танцевальная Ассоциация",
+      organizationCity: "Самара",
+      bdsId: "ORG001",
+    },
   });
 
-  // 1. Mucho Mas 2025
+  // 1. Mucho Mas 2025 (главное событие)
   const muchoMasEvent = await prisma.event.create({
     data: {
       id: generateObjectId(),
       title: "Mucho Mas 2025",
-      description:
-        "<p>Это первый Российский оркестровый танго фестиваль.Роскошь и драйв живого исполнения. Аргентинская культура «оркестров для танцпола» — ощущение ожившей великой эпохи. Невероятная энергетика, объединяющая музыкантов и танцоров. Великолепные локации. Танцоры, влюбленные в танго, собравшиеся со всей страны.Приезжайте, чтобы услышать и ощутить Танго по-новому.</p>",
+      description: "<p>Оркестровый Танго фестиваль</p>",
       shortDescription: "Оркестровый Танго фестиваль / сезон 5",
       imageUrl: "/uploads/tango-event.jpg",
       startDate: new Date("2025-05-08T11:00:00"),
@@ -215,19 +232,187 @@ async function createRealEvents() {
       isArchived: false,
       isConfirmed: true,
       placeId: places[0].id,
+      organizerId: organizer.id,
+      creatorId: organizer.id,
+      danceStyleId: danceStyles[0].id,
     },
   });
-  // Добавляем тэги сети для Mucho Mas
 
-  await prisma.tag.createMany({
-    data: tags.map((tag) => {
-      return {
-        name: tag.name,
-        color: tag.color,
-        url: tag.url,
-        eventId: muchoMasEvent.id,
-      };
+  // Создаем реальные подсобытия для Mucho Mas 2025
+  const subEvents = await Promise.all([
+    // Подсобытие 1: Мастер-класс по танго
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Мастер-класс по аргентинскому танго с профессионалами",
+        description: "<p>Углубленный мастер-класс по технике аргентинского танго с профессиональными преподавателями из Аргентины. Изучение основных фигур, музыкальности и импровизации.</p>",
+        shortDescription: "Профессиональный мастер-класс от аргентинских преподавателей",
+        imageUrl: "/uploads/tango-masterclass.jpg",
+        startDate: new Date("2025-05-08T14:00:00"),
+        endDate: new Date("2025-05-08T16:00:00"),
+        minPrice: 1500,
+        maxPrice: 1500,
+        isOnline: false,
+        isFree: false,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[0].id,
+        parentEventId: muchoMasEvent.id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[0].id,
+      },
     }),
+
+    // Подсобытие 2: Конкурс танго
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Конкурс парного танго 'Золотое танго'",
+        description: "<p>Ежегодный конкурс парного танго с призовым фондом 100,000 рублей. Участвуют пары со всей России. Жюри из международных экспертов.</p>",
+        shortDescription: "Конкурс с призовым фондом 100,000 рублей",
+        imageUrl: "/uploads/tango-competition.jpg",
+        startDate: new Date("2025-05-09T18:00:00"),
+        endDate: new Date("2025-05-09T22:00:00"),
+        minPrice: 0,
+        maxPrice: 0,
+        isOnline: false,
+        isFree: true,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[0].id,
+        parentEventId: muchoMasEvent.id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[0].id,
+      },
+    }),
+
+    // Подсобытие 3: Вечерняя милонга
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Традиционная аргентинская милонга 'Noche de Tango'",
+        description: "<p>Традиционная аргентинская милонга с живой музыкой оркестра и уютной атмосферой. DJ набор, живое исполнение классических танго.</p>",
+        shortDescription: "Традиционная аргентинская вечеринка с живой музыкой",
+        imageUrl: "/uploads/milonga.jpg",
+        startDate: new Date("2025-05-10T21:00:00"),
+        endDate: new Date("2025-05-11T03:00:00"),
+        minPrice: 800,
+        maxPrice: 800,
+        isOnline: false,
+        isFree: false,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[0].id,
+        parentEventId: muchoMasEvent.id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[0].id,
+      },
+    }),
+
+    // Подсобытие 4: Воркшоп для начинающих
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Воркшоп 'Танго для начинающих'",
+        description: "<p>Специальный воркшоп для тех, кто только начинает свой путь в танго. Основы шага, объятия и музыкальности.</p>",
+        shortDescription: "Основы танго для новичков",
+        imageUrl: "/uploads/tango-beginners.jpg",
+        startDate: new Date("2025-05-09T11:00:00"),
+        endDate: new Date("2025-05-09T13:00:00"),
+        minPrice: 1000,
+        maxPrice: 1000,
+        isOnline: false,
+        isFree: false,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[0].id,
+        parentEventId: muchoMasEvent.id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[0].id,
+      },
+    }),
+
+    // Подсобытие 5: Гала-концерт
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Гала-концерт звёзд танго",
+        description: "<p>Заключительный гала-концерт с участием лучших пар фестиваля. Шоу-программа и награждение победителей.</p>",
+        shortDescription: "Гала-концерт и церемония награждения",
+        imageUrl: "/uploads/tango-gala.jpg",
+        startDate: new Date("2025-05-11T20:00:00"),
+        endDate: new Date("2025-05-11T23:00:00"),
+        minPrice: 1200,
+        maxPrice: 1200,
+        isOnline: false,
+        isFree: false,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[0].id,
+        parentEventId: muchoMasEvent.id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[0].id,
+      },
+    }),
+  ]);
+
+  // Добавляем тэги для Mucho Mas
+  await prisma.tag.createMany({
+    data: [
+      {
+        id: generateObjectId(),
+        name: "Фестиваль",
+        color: "#FF6B6B",
+        url: "/FiltersSearch/?event_type=festival",
+        eventId: muchoMasEvent.id,
+      },
+      {
+        id: generateObjectId(),
+        name: "Танго",
+        color: "#4ECDC4",
+        url: "/tango/",
+        eventId: muchoMasEvent.id,
+      },
+      {
+        id: generateObjectId(),
+        name: "18+",
+        color: "#45B7D1",
+        url: "/FiltersSearch/?age=18",
+        eventId: muchoMasEvent.id,
+      },
+    ],
+  });
+
+  // Добавляем тэги для подсобытий
+  await prisma.tag.createMany({
+    data: [
+      {
+        id: generateObjectId(),
+        name: "Мастер-Класс",
+        color: "#F9A826",
+        url: "/FiltersSearch/?event_type=master-klass",
+        eventId: subEvents[0].id,
+      },
+      {
+        id: generateObjectId(),
+        name: "Конкурс",
+        color: "#6A0DAD",
+        url: "/FiltersSearch/?event_type=konkurs",
+        eventId: subEvents[1].id,
+      },
+      {
+        id: generateObjectId(),
+        name: "Вечеринка",
+        color: "#E84855",
+        url: "/FiltersSearch/?event_type=party",
+        eventId: subEvents[2].id,
+      },
+    ],
   });
 
   // Добавляем социальные сети для Mucho Mas
@@ -242,185 +427,15 @@ async function createRealEvents() {
     },
   });
 
-  // Добавляем расписание для Mucho Mas
-  const days = [
-    {
-      name: "Четверг",
-      dateName: "8 Мая",
-      date: new Date("2025-05-08"),
-      timestamps: [
-        {
-          name: "Урок №1 / уровень A",
-          shortDescription:
-            "Magdalena Gutierrez & Germán Ballejo / Контроль пространства в объятиях: техники для поддержания комфорта и равновесия в объятиях",
-          time: "11:00 - 12:30",
-        },
-        {
-          name: "Урок №2 / уровень B",
-          shortDescription:
-            "Magdalena Gutierrez & Germán Ballejo // Хиро. • Техники для достижения точности и энергии в объятиях.",
-          time: "12:45 - 14:15",
-        },
-        {
-          name: "Урок №3 / уровень B",
-          shortDescription:
-            "Esteban Moreno & Claudia Codega // Инструменты для импровизации: Различные способы соединения элементов Хореографические связки №1: сакады, высокие сакады, болео и ганчо",
-          time: "14:30 - 16:00",
-        },
-        {
-          name: "Урок №4 / уровень C + Преподаватели",
-          shortDescription:
-            "Esteban Moreno & Claudia Codega // От танго-салона до сцены: Проекция и энергия, заземление и свинг",
-          time: "16:15 - 17:45",
-        },
-        {
-          name: "Урок №13 / уровень ABC + Преподаватели",
-          shortDescription:
-            "МТ с Esteban Moreno & Germán Ballejo // Урок техник для лидеров, которые хотят улучшить свой шаг, поворот, силу и стиль. Разные качества шага, работа стоп, спины и рук. Повороты, энроске, украшения.",
-          time: "18:00 - 19:30",
-        },
-        {
-          name: "Милонга №1",
-          shortDescription:
-            'DJ Ольга Агапова // Live: "Sonder tango" (Italia/Argentina) // Show: Magdalena Gutierrez & Germán Ballejo',
-          time: "21:00 - 03:00",
-        },
-      ],
-    },
-    {
-      name: "Пятница",
-      dateName: "9 Мая",
-      date: new Date("2025-05-09"),
-      timestamps: [
-        {
-          name: "Урок №5 / уровень B",
-          shortDescription:
-            "Esteban Moreno & Claudia Codega // Хореографические связки №2: сакады, высокие сакады, болео и ганчо",
-          time: "11:00 - 12:30",
-        },
-        {
-          name: "Урок №6 / уровень A",
-          shortDescription:
-            "Esteban Moreno & Claudia Codega // Основы социального танго: комфортное объятия, плавные шаги",
-          time: "12:45 - 14:15",
-        },
-        {
-          name: "Урок №7 / уровень A",
-          shortDescription:
-            "Magdalena Gutierrez & Germán Ballejo // Вдохновение великими милонгерос и маэстрос прошлого. Как управлять пространством на танцполе, уважая при этом социальное танго и его музыкальность. Содержание: Очо: перекрестная и параллельные системы",
-          time: "14:30 - 16:00",
-        },
-        {
-          name: "Урок №8 / уровень C + Преподаватели",
-          shortDescription:
-            "Magdalena Gutierrez & Germán Ballejo // Музыкальная фразировка и многослойность мелодии •Определение музыкальных фраз и адаптация движений к этим структурам •Работа с партнером и музыкальной фразировкой и оркестровыми стилями / Д'Арьенцо,Пульезе,Тройло",
-          time: "16:15 - 17:45",
-        },
-        {
-          name: "Урок №14 / уровень ABC + Преподаватели",
-          shortDescription:
-            "ЖТ с Magdalena Gutierrez // Женские техники (Лидеры тоже приветствуются!) Работа с базовыми настройки в танго (управление переносом веса, различные качества шага , повороты)",
-          time: "18:00 - 19:30",
-        },
-        {
-          name: "Милонга №2",
-          shortDescription:
-            "DJ Сергей Попов // Live: Tango en vivo tipica (Россия) // Show: Esteban Moreno & Claudia Codega",
-          time: "21:00 - 03:00",
-        },
-      ],
-    },
-    {
-      name: "Суббота",
-      dateName: "10 Мая",
-      date: new Date("2025-05-10"),
-      timestamps: [
-        {
-          name: "Урок №9 / уровень B",
-          shortDescription: "Magdalena Gutierrez & Germán Ballejo // Вальс. Цепочки и линейные / круговые движения.",
-          time: "11:00 - 12:30",
-        },
-        {
-          name: "Урок №10 / уровень C + Преподаватели",
-          shortDescription:
-            "Magdalena Gutierrez & Germán Ballejo // Стихии: Вода, Земля, Воздух, Огонь • Использование интенсивности и скорости в соответствии с динамикой заложенной в мелодию, плавные и взрывные упражнения. Урок музыкальности",
-          time: "12:45 - 14:15",
-        },
-        {
-          name: "Урок №11 / уровень C + Преподаватели",
-          shortDescription:
-            "Esteban Moreno & Claudia Codega // Совершенствование движений и последовательностей для сцены. Работа с последовательностями и комбинирование элементов / сакады, высокие сакады, болео, ганчо и энганчады, барриды",
-          time: "14:30 - 16:00",
-        },
-        {
-          name: "Урок №12 / уровень А",
-          shortDescription: "Esteban Moreno & Claudia Codega // Ритм Милонги: задор и игривость",
-          time: "16:15 - 18:00",
-        },
-        {
-          name: "Урок №15 / уровень BC и преподаватели",
-          shortDescription: "ЖТ с Claudia Codega // Женские техники Характер, сила, украшения.",
-          time: "18:00 - 19:30",
-        },
-        {
-          name: "Милонга №3",
-          shortDescription: "DJ Николай Ростов // Live: Romantica Milonguera (Argentina)",
-          time: "22:00 - 03:00",
-        },
-      ],
-    },
-    {
-      name: "Воскресенье",
-      dateName: "11 Мая",
-      date: new Date("2025-05-11"),
-      timestamps: [
-        {
-          name: "Чемпионат и Кубок MUCHO MÁS 2025",
-          shortDescription: "По доброй традиции в заключительный день пройдет Кубок MUCHO MÁS",
-          time: "09:00 - 19:00",
-        },
-        {
-          name: "Милонга №4",
-          shortDescription:
-            "Dj Daniel Tuero // Брюссельский формат: Show: Esteban Moreno & Magdalena Gutierrez, Germán Ballejo & Claudia Codega",
-          time: "21:00 - 02:00",
-        },
-      ],
-    },
-  ];
-
-  for (const day of days) {
-    const timetable = await prisma.timetable.create({
-      data: {
-        id: generateObjectId(),
-        name: day.name,
-        dateName: day.dateName,
-        date: day.date,
-        eventId: muchoMasEvent.id,
-      },
-    });
-
-    await prisma.timestamp.createMany({
-      data: day.timestamps.map((ts) => ({
-        id: generateObjectId(),
-        name: ts.name,
-        shortDescription: ts.shortDescription,
-        time: ts.time,
-        timetableId: timetable.id,
-      })),
-    });
-  }
-
   // 2. Бачата мастер класс с Дмитрий Вагис
   const bachataEvent = await prisma.event.create({
     data: {
       id: generateObjectId(),
       title: "Бачата мастер класс с Дмитрий Вагис",
       description:
-        "<p>Дмитрий Вагин:\n-Главный по Бачате в СНГ\n-За 10 лет обучил более 25000 человек\n-Проводил свои классы в 21й стране и 70и городах мира\n-Двукратный чемпион России\n-Чемпион стран Европы\n-Бронзовый мировой призер</p>\n<p>-Автор собственной методики обучения\n-Автор онлайн курсов, марафонов и интенсивов\n-Основатель Бачата студия Loco Vagis\n-Организатор Бачата ивента Sensual Weekend\n-Организатор Фестиваль-Турнира Association Cup\n-Автор Социально благотворительного проекта «Бачата по-Русски»\n-Организатор Концертно-развлекательного проекта Fiesta by Vagis\n-Организатор BIG Russian Bachata Congress</p>",
-      shortDescription: "Дмитрий Вагис в Самаре в октябре 2024 - Бачата Интенсив",
-
-      imageUrl: "/uploads/tango-event.jpg",
+        "<p>Дмитрий Вагин - главный по Бачате в СНГ. За 10 лет обучил более 25000 человек. Проводил свои классы в 21й стране и 70и городах мира.</p>",
+      shortDescription: "Дмитрий Вагис в Самаре - Бачата Интенсив",
+      imageUrl: "/uploads/bachata-event.jpg",
       startDate: new Date("2024-10-26T08:00:00"),
       endDate: new Date("2024-10-26T18:00:00"),
       minPrice: 0,
@@ -430,23 +445,9 @@ async function createRealEvents() {
       isArchived: false,
       isConfirmed: true,
       placeId: places[1].id,
-    },
-  });
-
-  await prisma.tag.createMany({
-    data: tags.map((tag) => ({
-      name: tag.name,
-      color: tag.color,
-      url: tag.url,
-      eventId: bachataEvent.id,
-    })),
-  });
-
-  await prisma.socials.create({
-    data: {
-      id: generateObjectId(),
-      vk: "https://vk.com/vagisinsamara",
-      eventId: bachataEvent.id,
+      organizerId: organizer.id,
+      creatorId: organizer.id,
+      danceStyleId: danceStyles[2].id,
     },
   });
 
@@ -455,12 +456,9 @@ async function createRealEvents() {
     data: {
       id: generateObjectId(),
       title: 'Конкурсный тур "Самарская танцевальная ярмарка «PROдвижение»"',
-      description:
-        '<p>Всероссийского конкурса-фестиваля\n«Самарская танцевальная ярмарка "PROдвижение"\nОчный этап конкурса состоится 17 августа 2024 года в г. Самара</p>\n<p>Художественный руководитель Конкурса-фестиваля Ульбаев Виталий Фаритович\nГалина Петровна            +79170127126\nЕкатерина Максимовна   +79198030137\n с 10:00 до 18:00 в будние дни\ne-mail: samtanpro@mail.ru\nПри поддержке: Президентский фонда культурных инициатив</p>',
-      shortDescription:
-        'Очный этап конкурса-фестиваля "Самарская танцевальная ярмарка "PROдвижение" При поддержке Президентского Фонда Культурных Инициатив',
-
-      imageUrl: "/uploads/tango-event.jpg",
+      description: "<p>Всероссийский конкурс-фестиваль танцевального искусства.</p>",
+      shortDescription: "Очный этап конкурса-фестиваля",
+      imageUrl: "/uploads/competition-event.jpg",
       startDate: new Date("2024-08-17T14:00:00"),
       endDate: new Date("2024-08-17T21:30:00"),
       minPrice: 0,
@@ -470,23 +468,9 @@ async function createRealEvents() {
       isArchived: false,
       isConfirmed: true,
       placeId: places[2].id,
-    },
-  });
-
-  await prisma.tag.createMany({
-    data: tags.map((tag) => ({
-      name: tag.name,
-      color: tag.color,
-      url: tag.url,
-      eventId: konkursEvent.id,
-    })),
-  });
-
-  await prisma.socials.create({
-    data: {
-      id: generateObjectId(),
-      vk: "https://vk.com/samtanpro",
-      eventId: konkursEvent.id,
+      organizerId: organizer.id,
+      creatorId: organizer.id,
+      danceStyleId: danceStyles[5].id,
     },
   });
 
@@ -495,12 +479,9 @@ async function createRealEvents() {
     data: {
       id: generateObjectId(),
       title: 'Самарская танцевальная ярмарка "PROдвижение"',
-      description:
-        '<p>В августе в Самаре состоится Всероссийский конкурс-фестиваль "Самарская танцевальная ярмарка "PROдвижение".</p>\n<p>Призовой фонд конкурса-фестиваля составляет 200 000 рублей. Иногородним участникам оргкомитет предоставляет бесплатное проживание и питание для групп не более 10 человек.</p>\n<p>Конкурс-фестиваль включает в себя онлайн-отбор участников, очный тур конкурса (конкурсные состязания пройдут в 9 хореографических номинациях), образовательную и фестивальную программы: круглые столы, мастер-классы, показательные выступления творческих коллективов, ознакомительную экскурсию по Самаре.</p>\n<p>В жюри — видные деятели искусства и культуры, народные и заслуженные артисты, почётные работники образования, известные педагоги и руководители творческих коллективов, хореографы, артисты музыкальных театров.</p>\n<p>Последний день подачи заявок в онлайн-отбор — 1 мая 2024 года.</p>\n<p>При поддержке Президентского Фонда Культурных Инициатив.</p>',
-      shortDescription:
-        'Всероссийский конкурс-фестиваль "Самарская танцевальная ярмарка "PROдвижение", При поддержке Президентского Фонда Культурных Инициатив',
-
-      imageUrl: "/uploads/tango-event.jpg",
+      description: "<p>Всероссийский конкурс-фестиваль с призовым фондом 200 000 рублей.</p>",
+      shortDescription: "Конкурс-фестиваль танцевального искусства",
+      imageUrl: "/uploads/festival-event.jpg",
       startDate: new Date("2024-08-17T14:00:00"),
       endDate: new Date("2024-08-18T21:30:00"),
       minPrice: 0,
@@ -510,29 +491,88 @@ async function createRealEvents() {
       isArchived: false,
       isConfirmed: true,
       placeId: places[3].id,
+      organizerId: organizer.id,
+      creatorId: organizer.id,
+      danceStyleId: danceStyles[5].id,
     },
   });
 
-  await prisma.tag.createMany({
-    data: tags.map((tag) => ({
-      name: tag.name,
-      color: tag.color,
-      url: tag.url,
-      eventId: samaraEvent.id,
-    })),
-  });
+  // 5. Дополнительные события
+  const additionalEvents = await Promise.all([
+    // Хип-хоп баттл
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Хип-хоп баттл Street Style",
+        description: "<p>Еженедельный хип-хоп баттл для танцоров всех уровней.</p>",
+        shortDescription: "Уличные танцевальные баттлы",
+        imageUrl: "/uploads/hiphop-event.jpg",
+        startDate: new Date("2024-11-15T19:00:00"),
+        endDate: new Date("2024-11-15T23:00:00"),
+        minPrice: 500,
+        maxPrice: 500,
+        isOnline: false,
+        isFree: false,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[4].id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[3].id,
+      },
+    }),
 
-  await prisma.socials.create({
-    data: {
-      id: generateObjectId(),
-      vk: "https://vk.com/samtanpro",
-      eventId: samaraEvent.id,
-    },
-  });
-  
+    // Сальса вечеринка
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Salsa Night - еженедельная вечеринка",
+        description: "<p>Традиционная сальса вечеринка с уроками для начинающих.</p>",
+        shortDescription: "Латиноамериканские ритмы",
+        imageUrl: "/uploads/salsa-event.jpg",
+        startDate: new Date("2024-11-20T20:00:00"),
+        endDate: new Date("2024-11-21T02:00:00"),
+        minPrice: 700,
+        maxPrice: 700,
+        isOnline: false,
+        isFree: false,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[5].id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[1].id,
+      },
+    }),
+
+    // Контемпорари воркшоп
+    prisma.event.create({
+      data: {
+        id: generateObjectId(),
+        title: "Контемпорари воркшоп с известными хореографами",
+        description: "<p>Интенсивный воркшоп по современному танцу.</p>",
+        shortDescription: "Современная хореография",
+        imageUrl: "/uploads/contemporary-event.jpg",
+        startDate: new Date("2024-12-05T11:00:00"),
+        endDate: new Date("2024-12-05T17:00:00"),
+        minPrice: 2000,
+        maxPrice: 2000,
+        isOnline: false,
+        isFree: false,
+        isArchived: false,
+        isConfirmed: true,
+        placeId: places[4].id,
+        organizerId: organizer.id,
+        creatorId: organizer.id,
+        danceStyleId: danceStyles[4].id,
+      },
+    }),
+  ]);
 
   console.log("✅ Стили танцев созданы!");
   console.log("✅ Реальные мероприятия созданы!");
+  console.log("✅ Подсобытия добавлены!");
+  console.log("✅ Дополнительные события созданы!");
 }
 
 createRealEvents()

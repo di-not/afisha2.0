@@ -19,8 +19,10 @@ import { IconBookmark } from "@/shared/icons/bookmark";
 import { IconFavorite } from "@/shared/icons/favorite";
 import { useSession } from "next-auth/react";
 import { EventAttendanceStatus } from "@prisma/client";
+import SubEvents from "@/widgets/event/ui/sub-events";
+import { IconChevronDown } from "@/shared/icons/chevron-down";
 
-export type ActiveTab = "description" | "timetable" | "organizers" | "documents";
+export type ActiveTab = "description" | "timetable" | "organizers" | "documents" | "subevents";
 
 const tabs = [
   { id: "organizers" as ActiveTab, label: "Организаторы", icon: <IconOrganizers className="size-[24px]" /> },
@@ -32,6 +34,8 @@ const tabs = [
 ];
 
 export default function EventPage({ event }: { event: Event }) {
+  console.log(event);
+
   const [localStatus, setLocalStatus] = useState({
     isFavorite: event.userStatus?.isFavorite || false,
     isBookmarked: event.userStatus?.isBookmarked || false,
@@ -50,8 +54,8 @@ export default function EventPage({ event }: { event: Event }) {
 
   const handleAction = async (action: string, status?: EventAttendanceStatus) => {
     setLoading(true);
-    if(!session){
-      router.push('/login')
+    if (!session) {
+      router.push("/login");
     }
     try {
       const response = await fetch(`/api/user/events/attendance/${event.id}`, {
@@ -81,8 +85,8 @@ export default function EventPage({ event }: { event: Event }) {
   };
 
   const handleNotGoing = async () => {
-    if(!session){
-      router.push('/login')
+    if (!session) {
+      router.push("/login");
     }
     setLoading(true);
     try {
@@ -164,6 +168,7 @@ export default function EventPage({ event }: { event: Event }) {
                 <IconHome className="text-white" />
                 Главная
               </Link>
+
               <li className="bgPrimary rounded-full p-1 px-4 text-white font-medium ">{event.title}</li>
             </ol>
           </nav>
@@ -189,6 +194,8 @@ export default function EventPage({ event }: { event: Event }) {
           </div>
         </div>
 
+        {/* Блок информации о родительском мероприятии */}
+
         <div className="flex gap-6 max-md:flex-col! ">
           <div className="space-y-3 w-100 max-md:w-full ">
             <div className="bg-white rounded-xl shadow-xl/10 overflow-hidden">
@@ -208,51 +215,59 @@ export default function EventPage({ event }: { event: Event }) {
             </div>
 
             <div className="bg-white rounded-xl shadow-xl/10 p-6">
-              {session && (
-                <div className="mt-1">
-                  <h3 className="font-bold text-lg mb-4">Пошли бы вы на это событие?</h3>
-                  <div className="flex gap-2">
-                    <button
-                      className={`px-4 py-2 text-sm flex-1 ${
-                        attendance === EventAttendanceStatus.GOING
-                          ? "bgButton text-white"
-                          : "bgButtonSecondary text-gray-700"
-                      } rounded-lg transition-colors`}
-                      onClick={() => handleAction("attendance", EventAttendanceStatus.GOING)}
-                      disabled={loading}
-                    >
-                      Пойду
-                    </button>
-                    <button
-                      className={`px-4 py-2 text-sm flex-1 ${
-                        attendance === EventAttendanceStatus.INTERESTED
-                          ? "bgButton text-white"
-                          : "bgButtonSecondary text-gray-700"
-                      } rounded-lg transition-colors`}
-                      onClick={() => handleAction("attendance", EventAttendanceStatus.INTERESTED)}
-                      disabled={loading}
-                    >
-                      Наверно
-                    </button>
-                    <button
-                      className={`px-4 py-2 text-sm flex-1 ${
-                        attendance === null ? "bgButton text-white" : "bgButtonSecondary text-gray-700"
-                      } rounded-lg transition-colors`}
-                      onClick={handleNotGoing}
-                      disabled={loading || attendance === null}
-                    >
-                      Не пойду
-                    </button>
-                  </div>
+              <div className="mt-1">
+                <h3 className="font-bold text-lg mb-4">Пошли бы вы на это событие?</h3>
+                <div className="flex gap-2">
+                  <button
+                    className={`px-4 py-2 text-sm flex-1 ${
+                      attendance === EventAttendanceStatus.GOING
+                        ? "bgButton text-white"
+                        : "bgButtonSecondary text-gray-700"
+                    } rounded-lg transition-colors`}
+                    onClick={() => handleAction("attendance", EventAttendanceStatus.GOING)}
+                    disabled={loading}
+                  >
+                    Пойду
+                  </button>
+                  <button
+                    className={`px-4 py-2 text-sm flex-1 ${
+                      attendance === EventAttendanceStatus.INTERESTED
+                        ? "bgButton text-white"
+                        : "bgButtonSecondary text-gray-700"
+                    } rounded-lg transition-colors`}
+                    onClick={() => handleAction("attendance", EventAttendanceStatus.INTERESTED)}
+                    disabled={loading}
+                  >
+                    Наверно
+                  </button>
+                  <button
+                    className={`px-4 py-2 text-sm flex-1 ${
+                      attendance === null ? "bgButton text-white" : "bgButtonSecondary text-gray-700"
+                    } rounded-lg transition-colors`}
+                    onClick={handleNotGoing}
+                    disabled={loading || attendance === null}
+                  >
+                    Не пойду
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
           <div className="flex-1 h-fit">
             <div className="bg-white rounded-xl shadow-2xl p-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.title}</h1>
-
+              {event.parentEvent && (
+                <div className="flex items-center gap-2">
+                  <span className="text-black font-semibold">Проходит в рамках:</span>
+                  <Link
+                    href={`/events/${event.parentEvent.id}`}
+                    className="text-[var(--primary)] font-medium underline"
+                  >
+                    {event.parentEvent.title}
+                  </Link>
+                </div>
+              )}
               {event.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-2">
                   {event.tags.map((tag) => (
@@ -338,7 +353,16 @@ export default function EventPage({ event }: { event: Event }) {
                     )}
                   </>
                 )}
-
+                {activeTab === "subevents" && (
+                  <>
+                    <h3 className="font-bold text-black text-2xl mb-2">Подсобытия</h3>
+                    {event.subEvents && event.subEvents.length > 0 ? (
+                      <SubEvents events={event.subEvents} />
+                    ) : (
+                      <>Подсобытия не указаны...</>
+                    )}
+                  </>
+                )}
                 {event.documents && activeTab === "documents" && event.documents.length > 0 && (
                   <div>
                     <h3 className="font-bold text-xl mb-4">Документы</h3>

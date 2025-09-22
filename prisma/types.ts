@@ -26,6 +26,10 @@ export interface Event {
     attendanceStatus: string | null;
   } | null;
 
+  parentEventId?: string | null;
+  parentEvent?: Event | null;
+  subEvents?: Array<Event> | null;
+  
   place?: {
     id: string;
     name: string;

@@ -8,8 +8,8 @@ datasource db {
 }
 
 model User {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  bdsId String @unique 
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  bdsId String @unique
 
   fullName String
   email    String
@@ -167,6 +167,11 @@ model Event {
   attendees    UserEvent[]
   favoritedBy  UserFavoriteEvent[]
   bookmarkedBy UserBookmarkedEvent[]
+
+  // Связи для подсобытий
+  parentEventId String? @db.ObjectId
+  parentEvent     Event?   @relation("SubEvents", fields: [parentEventId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subEvents     Event[] @relation("SubEvents")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

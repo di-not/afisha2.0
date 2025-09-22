@@ -63,7 +63,7 @@ export default function TabNavigation({
               `}
             >
               {<span className={`m-auto z-10 ${activeTab === tab.id ? "text-white" : "text-black"}`}>{tab.icon}</span>}
-              <span className={`z-10 m-auto  ${activeTab === tab.id ? "text-white" : "text-black"}`}>{tab.label}</span>
+              <span className={`z-10 m-auto max-[1150px]:hidden flex ${activeTab === tab.id ? "text-white" : "text-black"}`}>{tab.label}</span>
             </button>
           ))}
 

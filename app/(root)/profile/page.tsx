@@ -23,9 +23,8 @@ export default function ProfilePage() {
   const [copied, setCopied] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const isYandexUser = session?.user && 'provider' in session.user 
-    ? (session.user as any).provider?.startsWith("yandex")
-    : false;
+  const isYandexUser =
+    session?.user && "provider" in session.user ? (session.user as any).provider?.startsWith("yandex") : false;
 
   const form = useForm<ProfileFormData>({
     defaultValues: {
@@ -117,9 +116,6 @@ export default function ProfilePage() {
         setAvatar(null);
         setSaveSuccess(true);
 
-        // Форма уже содержит правильные значения, так как мы их только что отправили
-        // Не нужно сбрасывать форму, значения остаются теми же
-
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
         const errorData = await response.json();
@@ -191,9 +187,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-blue-900">Ваш BDS ID</h3>
-              <p className="text-blue-700 text-sm mt-1">
-                Уникальный идентификатор вашего аккаунта
-              </p>
+              <p className="text-blue-700 text-sm mt-1">Уникальный идентификатор вашего аккаунта</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="bg-white px-3 py-1 rounded-lg border border-blue-200 font-mono text-blue-900">
@@ -208,9 +202,7 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
-          {copied && (
-            <div className="text-green-600 text-sm mt-2">✓ Скопировано!</div>
-          )}
+          {copied && <div className="text-green-600 text-sm mt-2">✓ Скопировано!</div>}
         </div>
       )}
 
